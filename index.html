@@ -1,10 +1,267 @@
-<html>
-    <head>
-        <link rel="canonical" href="http://www.example.com" />
-        <meta property="og:url" content="http://k0mat.github.io/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Testowy tytul" />
-        <meta property="og:description" content="testowy opis" />
-        <meta property="og:image" content="http://static-3eb8.kxcdn.com/media/102017/328/ifab_baner_shop_main2_highlight.png" />
-    </head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Price Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 960px;
+        }
+        .product-item {
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .product-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="container mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Amazon Price Tracker</h1>
+
+        <div class="mb-8 p-4 bg-gray-100 rounded-md">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Product to Track</h2>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input type="text" id="productUrl" placeholder="Enter Amazon.pl or Amazon.de product URL" class="flex-grow p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="addProductBtn" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Add Product</button>
+            </div>
+            <p id="errorMessage" class="text-red-600 mt-2 hidden"></p>
+        </div>
+
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Tracked Products</h2>
+            <ul id="productList" class="border border-gray-300 rounded-md divide-y divide-gray-300">
+                </ul>
+            <p id="noProductsMessage" class="text-gray-500 text-center mt-4">No products added yet.</p>
+        </div>
+
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Price History Graph</h2>
+            <div class="bg-gray-100 rounded-md p-4">
+                 <canvas id="priceChart"></canvas>
+            </div>
+             <p class="text-sm text-gray-600 mt-4">Note: Price data and graph are simulated in this frontend-only version. A backend is required for real-time fetching and persistent storage.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Storage (Simulated using localStorage) ---
+        // In a real application, this would interact with a backend API.
+        let products = JSON.parse(localStorage.getItem('trackedProducts')) || [];
+        const productListElement = document.getElementById('productList');
+        const noProductsMessageElement = document.getElementById('noProductsMessage');
+        const errorMessageElement = document.getElementById('errorMessage');
+        const priceChartCanvas = document.getElementById('priceChart');
+        let priceChart = null; // To hold the Chart.js instance
+
+        // --- Helper Functions ---
+
+        // Simulate fetching product details (title, current price)
+        // In a real app, this would be an API call to your backend
+        function simulateFetchProductDetails(url) {
+            // Basic validation for Amazon.pl or Amazon.de URLs
+            if (!url.match(/amazon\.(pl|de)\/.*dp\//)) {
+                return null; // Invalid URL
+            }
+
+            // Simulate fetching data - replace with actual backend API call
+            const simulatedData = {
+                title: `Simulated Product Title for ${url.substring(0, 30)}...`,
+                currentPrice: (Math.random() * 100 + 10).toFixed(2), // Random price between 10 and 110
+                // Simulate historical data for the graph
+                historicalPrices: generateSimulatedHistoricalData()
+            };
+            return simulatedData;
+        }
+
+        // Simulate generating historical price data
+        function generateSimulatedHistoricalData() {
+            const data = [];
+            const numPoints = 30; // Data for the last 30 days
+            let currentPrice = parseFloat((Math.random() * 200 + 50).toFixed(2)); // Starting price
+
+            for (let i = 0; i < numPoints; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - (numPoints - 1 - i));
+                // Simulate price fluctuation
+                currentPrice += (Math.random() - 0.5) * 10; // Random change
+                if (currentPrice < 10) currentPrice = 10; // Prevent price from going too low
+                data.push({ date: date.toISOString().split('T')[0], price: parseFloat(currentPrice.toFixed(2)) });
+            }
+            return data;
+        }
+
+        // Render the list of tracked products
+        function renderProductList() {
+            productListElement.innerHTML = ''; // Clear current list
+            if (products.length === 0) {
+                noProductsMessageElement.classList.remove('hidden');
+            } else {
+                noProductsMessageElement.classList.add('hidden');
+                products.forEach((product, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('product-item', 'p-4', 'flex', 'flex-col', 'sm:flex-row', 'justify-between', 'items-start', 'sm:items-center', 'gap-4');
+                    listItem.innerHTML = `
+                        <div class="flex-grow">
+                            <a href="${product.url}" target="_blank" class="text-blue-600 hover:underline font-semibold">${product.title}</a>
+                            <p class="text-gray-600 text-sm truncate">${product.url}</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-lg font-bold text-green-700">${product.currentPrice} zł/€</span>
+                            <button data-index="${index}" class="remove-btn px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Remove</button>
+                        </div>
+                    `;
+                    productListElement.appendChild(listItem);
+                });
+
+                // Add event listeners to remove buttons
+                document.querySelectorAll('.remove-btn').forEach(button => {
+                    button.addEventListener('click', handleRemoveProduct);
+                });
+            }
+        }
+
+        // Handle adding a new product
+        function handleAddProduct() {
+            const urlInput = document.getElementById('productUrl');
+            const url = urlInput.value.trim();
+            errorMessageElement.classList.add('hidden');
+
+            if (!url) {
+                errorMessageElement.textContent = 'Please enter a URL.';
+                errorMessageElement.classList.remove('hidden');
+                return;
+            }
+
+            // Simulate fetching details - this is where you'd call your backend API
+            const productDetails = simulateFetchProductDetails(url);
+
+            if (!productDetails) {
+                errorMessageElement.textContent = 'Invalid Amazon.pl or Amazon.de URL.';
+                errorMessageElement.classList.remove('hidden');
+                return;
+            }
+
+            const newProduct = {
+                id: Date.now(), // Simple unique ID
+                url: url,
+                title: productDetails.title,
+                currentPrice: productDetails.currentPrice,
+                historicalPrices: productDetails.historicalPrices // Simulated historical data
+            };
+
+            products.push(newProduct);
+            localStorage.setItem('trackedProducts', JSON.stringify(products)); // Save to localStorage
+            urlInput.value = ''; // Clear input field
+            renderProductList();
+            renderPriceChart(); // Update the chart
+        }
+
+        // Handle removing a product
+        function handleRemoveProduct(event) {
+            const index = event.target.dataset.index;
+            products.splice(index, 1);
+            localStorage.setItem('trackedProducts', JSON.stringify(products)); // Save to localStorage
+            renderProductList();
+            renderPriceChart(); // Update the chart
+        }
+
+        // Render the price history chart
+        function renderPriceChart() {
+            if (priceChart) {
+                priceChart.destroy(); // Destroy previous chart instance
+            }
+
+            if (products.length === 0) {
+                // Optionally hide or show a message if no products
+                 priceChartCanvas.style.display = 'none';
+                 return;
+            } else {
+                 priceChartCanvas.style.display = 'block';
+            }
+
+            // For simplicity, the graph will show the history of the *first* tracked product
+            // In a real app, you might select a product or show multiple lines
+            const productToShow = products[0];
+            const dates = productToShow.historicalPrices.map(data => data.date);
+            const prices = productToShow.historicalPrices.map(data => data.price);
+
+            priceChart = new Chart(priceChartCanvas, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: `${productToShow.title} Price History`,
+                        data: prices,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allow chart to resize freely
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price (zł/€)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(context.parsed.y); // Use EUR for example, adjust based on product
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // --- Event Listeners ---
+        document.getElementById('addProductBtn').addEventListener('click', handleAddProduct);
+
+        // Allow adding product by pressing Enter in the input field
+        document.getElementById('productUrl').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                handleAddProduct();
+            }
+        });
+
+        // --- Initial Render ---
+        renderProductList();
+        renderPriceChart(); // Render chart on load if products exist
+
+    </script>
+</body>
 </html>
