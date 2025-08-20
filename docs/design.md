@@ -10,7 +10,7 @@ This document consolidates UX, UI, and visual design guidelines for io-ai, focus
 - Assistant messages render markdown with code block syntax highlighting.
 - Streaming shows progressive text and a Stop button.
 - Provider-aware affordances (e.g., disabled Send when a required key is missing).
-- Key Manager is always accessible via a key icon in the header.
+- Settings panel (gear icon) provides Secrets and preferences.
 - Future: multi-model fan-out shows side-by-side results with stop/retry per model.
 
 ## Design System & Visual Guidelines
@@ -50,6 +50,7 @@ Components (class contracts)
 - .card: padded container with border and background surface.
 - .input, .select, .textarea: neutral bg/text, border, rounded, ring on focus.
 - .btn: neutral button; .btn-primary, .btn-danger for emphasis; .icon-btn for small icon actions.
+- Provider select uses Headless UI Listbox styled with input/menu classes.
 - .badge: small label for metadata.
 
 Accessibility
@@ -67,4 +68,3 @@ Documentation
 
 Change process
 - Any change to tokens, components, or patterns must be reflected here and in the code (src/index.css, Tailwind, and components). Add a brief rationale in docs/memory.md under "Design decisions".
-

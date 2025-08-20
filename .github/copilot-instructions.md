@@ -43,16 +43,21 @@ Non-goals (for now)
 # Current Folder Structure
 
 - /src
-  - App.tsx: app shell, chat UI, provider selection, streaming.
+  - App.tsx: app shell, chat UI, settings panel trigger, streaming.
   - main.tsx, index.css: entry and global styles.
-  - components/KeyManager.tsx: manage API keys and encryption.
+  - components/
+    - ProviderSelect.tsx: accessible provider dropdown (Headless UI Listbox)
+    - settings/
+      - SettingsPanel.tsx, SecretsSection.tsx, ChatPrefsSection.tsx, ProviderKeyCard.tsx
   - providers/
     - adapters.ts: provider contracts + shared errors.
-    - echo.ts: demo streaming provider.
     - openrouter.ts: SSE streaming to OpenRouter chat completions.
+    - validate.ts: key validation helpers.
+    - openrouter.test.ts: streaming/format tests.
+    - echo.ts: demo provider (legacy; slated for removal).
   - store/
-    - appStore.ts: app-wide settings (theme).
-    - secretsStore.ts: keys + encryption state.
+    - appStore.ts: app-wide settings (theme, preferences).
+    - secretsStore.ts: multi-provider keys + encryption state.
   - core/crypto.ts: AES-GCM + PBKDF2 helpers.
   - test/setup.ts: Vitest + jsdom setup and matchMedia polyfill.
 - /public
@@ -67,6 +72,7 @@ Non-goals (for now)
 
 - React 18, Vite 5, TypeScript 5
 - Tailwind CSS
+- Headless UI (@headlessui/react) for accessible Listbox (provider select)
 - Zustand (state)
 - react-markdown, remark-gfm, rehype-highlight
 - Vitest + @testing-library/react + jsdom
