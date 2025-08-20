@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0;url=/" />
+    <script>
+      // GitHub Pages SPA fallback: redirect to index with preserved path
+      var l = window.location;
+      var base = (document.querySelector('base') || {}).href || '/';
+      var path = l.pathname.replace(/^\/+/, '');
+      var newUrl = base + (path ? ('#/' + path + l.search + l.hash) : '');
+      window.location.replace(newUrl || base);
+    </script>
+  </head>
+  <body></body>
+</html>
+
