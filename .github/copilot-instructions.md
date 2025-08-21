@@ -148,7 +148,8 @@ Keep this file updated with links only; update docs/design.md when tokens, patte
   - username.github.io → "/"
   - project repos → "/<repo>/"
 - SPA routing via public/404.html fallback.
-- Artifacts deployed from dist via actions/deploy-pages.
+- Artifacts are built to dist and deployed via actions/deploy-pages in a two-job workflow (build → upload artifact, then deploy with environment github-pages) on branch master.
+- In repo Settings → Pages, set Source to "GitHub Actions" (not Branch) so Pages serves the built artifact, not the repo root.
 
 ---
 
@@ -189,3 +190,5 @@ Workflow
 # Update Policy (Important)
 
 Whenever introducing a major change (new provider, storage shape change, build/deploy change, or significant UI/UX shift), update this document to reflect the new architecture, behavior, and guidance. Treat this file as the living source of truth for Copilot/context-aware tooling.
+
+Maintainer note: If GitHub Pages stops serving the built app and instead serves /src/*, re-check Pages settings (Source must be GitHub Actions) and confirm the build+deploy workflow is green and publishing dist.
