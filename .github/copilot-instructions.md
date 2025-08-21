@@ -1,12 +1,12 @@
 # Project Overview
 
-io-ai is a frontend-only, browser-based SPA that lets users chat with multiple hosted LLMs by bringing their own API keys. It runs on GitHub Pages (no backend), streams responses, and will support multi-model fan-out (ask several models at once and compare answers side-by-side). All secrets and chat data live in the browser (local storage), with an option to encrypt secrets at rest using a user passphrase.
+io-ai is a frontend-only, browser-based SPA that lets users chat with multiple hosted LLMs by bringing their own API keys. It runs on GitHub Pages (no backend), streams responses, and will support multi-model fan-out (ask several models at once and compare answers side-by-side). All secrets and chat data live in the browser (local storage).
 
 ## Goals (v1)
 - Single-page React app, build with Vite, TypeScript, and Tailwind.
 - Providers: start with Gemini and OpenRouter; add OpenAI next.
 - Streaming chat with markdown rendering and code highlighting.
-- Key management UI; secrets persisted locally with optional passphrase encryption.
+- Key management UI; secrets persisted locally.
 - GitHub Pages deployment with correct Vite base and SPA 404 fallback.
 
 Non-goals (for now)
@@ -30,9 +30,8 @@ Non-goals (for now)
   - OpenRouter for broad model routing; Gemini (Google) for direct Gemini models; additional providers will follow.
 
 - Secrets
-  - Stored in localStorage via a persisted Zustand store.
-  - Optional encryption at rest using Web Crypto (AES-GCM + PBKDF2/SHA-256).
-  - Passphrase held only in memory when unlocked.
+  - Stored in localStorage via a persisted Zustand store (plaintext in browser storage).
+  - No passphrase/encryption at rest (removed for simplicity and reliability in v1).
 
 - Deployment
   - GitHub Pages; Vite base set via env (VITE_BASE) in CI.
@@ -59,11 +58,11 @@ Non-goals (for now)
     - echo.ts: legacy demo provider (not used anymore).
   - store/
     - appStore.ts: app-wide settings (theme, preferences).
-    - secretsStore.ts: multi-provider keys + encryption state.
+    - secretsStore.ts: multi-provider keys.
     - chatStore.ts: tabs, per-tab session state and messages.
     - modelsStore.ts: per-provider favorites + default model.
     - *.test.ts: unit tests for stores.
-  - core/crypto.ts: AES-GCM + PBKDF2 helpers.
+  - core/crypto.ts: AES-GCM + PBKDF2 helpers (kept for potential future use; not used in v1).
   - test/setup.ts: Vitest + jsdom setup and matchMedia polyfill.
 - /public
   - 404.html: SPA fallback for GitHub Pages.
@@ -126,7 +125,7 @@ Keep this file updated with links only; update docs/design.md when tokens, patte
 
 # Security & Privacy
 
-- BYO keys stored locally; optional passphrase encryption protects at rest but not against active XSS.
+- BYO keys stored locally (plaintext in localStorage) for personal use.
 - Do not log secrets; avoid sending keys anywhere except directly to provider APIs from the browser.
 - Some providers may block browser origins/CORS; mark those as "needs proxy" in the UI.
 - Keep dependencies minimal; avoid risky, dynamic code execution.

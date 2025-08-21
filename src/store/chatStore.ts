@@ -104,7 +104,6 @@ export const useChatStore = create<ChatState>()(
     {
       name: 'io-ai:chats',
       partialize: (s) => ({ tabs: s.tabs, activeId: s.activeId }),
-      version: 1,
     }
   )
 );

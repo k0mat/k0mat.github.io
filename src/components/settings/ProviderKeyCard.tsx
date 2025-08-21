@@ -14,7 +14,7 @@ export default function ProviderKeyCard({
   placeholder: string;
   help?: string;
 }) {
-  const { getKey, setKey, clearKey, hasEncryptedData, isUnlocked } = useSecretsStore();
+  const { getKey, setKey, clearKey } = useSecretsStore();
   const secrets = useSecretsStore(s => s.secrets);
   const [value, setValue] = React.useState<string>(getKey(providerId) ?? '');
   const [validating, setValidating] = React.useState(false);
@@ -26,7 +26,7 @@ export default function ProviderKeyCard({
     setValue(getKey(providerId) ?? '');
     setValidationMsg(null);
     setValidationOk(null);
-  }, [providerId, getKey, isUnlocked, hasEncryptedData, secrets]);
+  }, [providerId, getKey, secrets]);
 
   // Also respond explicitly to persist hydration finish (for safety)
   React.useEffect(() => {

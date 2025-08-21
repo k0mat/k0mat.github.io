@@ -25,22 +25,18 @@ describe('secretsStore persistence', () => {
     expect(useSecretsStore2.getState().getKey('openrouter')).toBe('sk-test');
   });
 
-  it('stores only encrypted blob when encryption enabled and rehydrates after unlock', async () => {
+  it('clearAll removes secrets and clears storage keys', async () => {
     const useSecretsStore: any = await freshStore();
     useSecretsStore.getState().setKey('gemini', 'AIza-test');
-    await useSecretsStore.getState().encryptAll('pass');
-
-    const raw = localStorage.getItem('io-ai:secrets');
+    let raw = localStorage.getItem('io-ai:secrets');
     expect(raw).toBeTruthy();
-    const parsed = JSON.parse(raw!);
-    expect(parsed.state.secrets).toEqual({});
-    expect(parsed.state.encryptedBlob).toBeTruthy();
 
+    useSecretsStore.getState().clearAll();
+    expect(useSecretsStore.getState().getKey('gemini')).toBeNull();
+
+    // After clear, storage should still exist but contain empty secrets after next persist write
     const useSecretsStore2: any = await freshStore();
     await useSecretsStore2.persist.rehydrate();
     expect(useSecretsStore2.getState().getKey('gemini')).toBeNull();
-
-    await useSecretsStore2.getState().unlock('pass');
-    expect(useSecretsStore2.getState().getKey('gemini')).toBe('AIza-test');
   });
 });
