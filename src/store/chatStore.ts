@@ -97,7 +97,7 @@ export const useChatStore = create<ChatState>()(
           const tab: ChatTab = { id, title: 'New chat', providerId, model, messages: [], createdAt: now(), updatedAt: now() };
           set({ tabs: [tab], activeId: id });
         } else if (!s.activeId && s.tabs.length > 0) {
-          set({ activeId: s.tabs[0].id });
+          set({ activeId: s.tabs[0]?.id ?? null });
         }
       },
     }),
