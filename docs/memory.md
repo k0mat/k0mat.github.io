@@ -17,16 +17,16 @@ Memory rotation policy
 
 ## Recently Shipped (last 5)
 
+- Assistant bubble contrast + typing indicator + chat-only scroll
+  - Assistant messages have a bordered bubble with light shadow; animated dots show while composing; message list scrolls independently
+- Auto-scroll preference and streaming follow
+  - Toggle in Settings → Chat; auto-scrolls on send and follows growing replies when near bottom; distance-aware and respects reduced motion
+- Sanitized markdown and compact typography
+  - rehype-sanitize added; preserved highlight classes; tighter line-height/margins for better density in both themes
 - Message timestamps
   - Added createdAt to ChatMessage; render relative HH:MM with full timestamp on hover; safely hidden for legacy messages
 - Show model name on LLM responses
   - Assistant messages display the model used as a small badge
-- Auto chat tab naming (Fibonacci-triggered)
-  - After 1, 2, 3, 5, 8, ... user messages, the app asks the current model for a concise title and updates the tab name
-- Simplified secrets storage (no encryption at rest)
-  - Removed passphrase/unlock flow; keys persist plainly via localStorage; Settings UI cleaned up; tests/docs updated
-- Removed storage versioning/migrations for now
-  - Dropped version/migrate logic from persisted stores to reduce complexity until first stable
 
 ## Decisions (current)
 
