@@ -4,7 +4,7 @@ io-ai is a frontend-only, browser-based SPA that lets users chat with multiple h
 
 ## Goals (v1)
 - Single-page React app, build with Vite, TypeScript, and Tailwind.
-- Providers: start with Echo (demo) and OpenRouter; add OpenAI, Gemini, etc. next.
+- Providers: start with Gemini and OpenRouter; add OpenAI next.
 - Streaming chat with markdown rendering and code highlighting.
 - Key management UI; secrets persisted locally with optional passphrase encryption.
 - GitHub Pages deployment with correct Vite base and SPA 404 fallback.
@@ -21,13 +21,13 @@ Non-goals (for now)
 - Frontend only
   - React 18 + Vite 5 + TypeScript (strict) for app shell and build.
   - Tailwind CSS for styling; light/dark theme toggle.
-  - Zustand for state management (app and secrets stores).
+  - Zustand for state management (app, chats, secrets, models stores).
   - Streaming via fetch + ReadableStream; abort with AbortController.
   - Markdown rendering (react-markdown + remark-gfm + rehype-highlight).
 
 - Provider adapters
   - Unified interface maps provider-specific request/stream formats to a common sendMessageStream(args) → AsyncIterable<string>.
-  - Echo provider for local testing; OpenRouter for real model routing; additional providers will follow.
+  - OpenRouter for broad model routing; Gemini (Google) for direct Gemini models; additional providers will follow.
 
 - Secrets
   - Stored in localStorage via a persisted Zustand store.
@@ -43,21 +43,26 @@ Non-goals (for now)
 # Current Folder Structure
 
 - /src
-  - App.tsx: app shell, chat UI, settings panel trigger, streaming.
+  - App.tsx: app shell, chat UI, settings panel trigger, streaming, per-tab sessions.
   - main.tsx, index.css: entry and global styles.
   - components/
     - ProviderSelect.tsx: accessible provider dropdown (Headless UI Listbox)
+    - ModelFavoritesSelect.tsx: quick picker for saved models
     - settings/
-      - SettingsPanel.tsx, SecretsSection.tsx, ChatPrefsSection.tsx, ProviderKeyCard.tsx
+      - SettingsPanel.tsx, SecretsSection.tsx, ChatPrefsSection.tsx, ModelsSection.tsx, ProviderKeyCard.tsx
   - providers/
     - adapters.ts: provider contracts + shared errors.
     - openrouter.ts: SSE streaming to OpenRouter chat completions.
+    - gemini.ts: Google Gemini adapter (REST; simulated streaming in UI).
     - validate.ts: key validation helpers.
     - openrouter.test.ts: streaming/format tests.
-    - echo.ts: demo provider (legacy; slated for removal).
+    - echo.ts: legacy demo provider (not used anymore).
   - store/
     - appStore.ts: app-wide settings (theme, preferences).
     - secretsStore.ts: multi-provider keys + encryption state.
+    - chatStore.ts: tabs, per-tab session state and messages.
+    - modelsStore.ts: per-provider favorites + default model.
+    - *.test.ts: unit tests for stores.
   - core/crypto.ts: AES-GCM + PBKDF2 helpers.
   - test/setup.ts: Vitest + jsdom setup and matchMedia polyfill.
 - /public
@@ -78,7 +83,7 @@ Non-goals (for now)
 - Vitest + @testing-library/react + jsdom
 - lucide-react, sonner
 
-Planned providers (browser viability varies): OpenRouter (done), OpenAI, Gemini, Mistral. Others like Anthropic may require a proxy.
+Planned providers (browser viability varies): OpenRouter (done), Gemini (done), OpenAI (next), Mistral. Others like Anthropic may require a proxy.
 
 ---
 
@@ -131,7 +136,7 @@ Keep this file updated with links only; update docs/design.md when tokens, patte
 # Testing
 
 - Vitest + Testing Library; environment: jsdom; globals enabled.
-- Test streaming UI with the Echo provider and mocked streams for adapters.
+- Test streaming UI with mocked adapters (OpenRouter SSE, Gemini REST).
 - Polyfill matchMedia in test setup to avoid environment differences.
 - Add tests when adding providers (auth errors, rate limits, abort behavior).
 
@@ -149,7 +154,7 @@ Keep this file updated with links only; update docs/design.md when tokens, patte
 
 # Roadmap (near-term)
 
-1) Add OpenAI and Gemini provider adapters.
+1) Add OpenAI provider adapter.
 2) Multi-model fan-out UI with controlled concurrency and per-model abort.
 3) Export/import conversations (JSON) and presets.
 4) Token usage estimates and latency/cost badges per run.
@@ -162,7 +167,7 @@ Keep this file updated with links only; update docs/design.md when tokens, patte
 - Keep PRs small and focused. Include unit tests for new features.
 - Update README and this file when behavior or architecture changes in a meaningful way.
 - Commit messages: conventional, imperative mood (e.g., feat: add OpenAI adapter).
-- Prefer progressive enhancement; keep Echo provider as a reliable demo path.
+- Prefer progressive enhancement.
 
 ---
 

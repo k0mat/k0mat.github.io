@@ -86,6 +86,13 @@ export default function SecretsSection() {
         help="OpenRouter lets you access many models with one key."
       />
 
+      <ProviderKeyCard
+        providerId="gemini"
+        title="Gemini (Google)"
+        placeholder="AIza..."
+        help="Google AI Studio API key for Gemini models. Validation not available in-browser."
+      />
+
       <div className="card space-y-3">
         <div className="flex items-center justify-between">
           <div className="font-medium">Passphrase & Encryption</div>

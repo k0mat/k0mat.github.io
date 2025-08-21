@@ -1,7 +1,7 @@
 import React from 'react';
 import { useModelsStore } from '../../store/modelsStore';
 
-function ProviderModelsBlock({ pid, title, help, radioName }: { pid: 'openrouter' | 'echo'; title: string; help: string; radioName: string }) {
+function ProviderModelsBlock({ pid, title, help, radioName }: { pid: 'openrouter' | 'gemini'; title: string; help: string; radioName: string }) {
   const { byProvider, addFavorite, removeFavorite, setDefault } = useModelsStore();
   const cfg = byProvider[pid] ?? { favorites: [], defaultModel: null };
   const [input, setInput] = React.useState('');
@@ -62,10 +62,10 @@ export default function ModelsSection() {
         radioName="openrouter-default"
       />
       <ProviderModelsBlock
-        pid="echo"
-        title="Echo Models (demo)"
-        help="Optional: add demo model IDs like echo-1. Default will be used for new Echo chats."
-        radioName="echo-default"
+        pid="gemini"
+        title="Gemini Models (Google)"
+        help="Add Gemini model IDs (e.g., gemini-1.5-flash, gemini-1.5-pro). Default will be used for new Gemini chats."
+        radioName="gemini-default"
       />
     </div>
   );

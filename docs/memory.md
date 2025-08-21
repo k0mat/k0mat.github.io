@@ -10,23 +10,20 @@ Memory rotation policy
 
 ## Active Work (current)
 
-1) Remove Echo demo provider
-- Remove echo from providers list; update tests to mock OpenRouter adapter for streaming tests.
-- Provide fallback copy to guide users to enter a key in Settings if none present.
-- Success: no Echo code path; tests green with new mocks.
+- (none)
 
 ## Recently Shipped (last 5)
 
+- Remove Echo demo provider; add Gemini provider
+  - Echo removed from UI and defaults; Gemini adapter added; Secrets/Models updated; tests green
 - Model favorites dropdown
   - Favorites picker next to model input; selecting a favorite updates the session model
 - Echo default model fix
   - Per-provider defaults applied on new tabs and provider switch; removed auto-correct override that reset Echo models
 - Models settings (multi-provider)
-  - Models section supports multiple providers (OpenRouter + Echo); favorites + default per provider
+  - Models section supports multiple providers (OpenRouter + Gemini); favorites + default per provider
 - Chat tabs system (MVP)
   - Add/close/switch tabs; persisted via Zustand; keyboard and mouse friendly; tests still green
-- Provider/model controls per tab
-  - Moved provider and model input from header to per-session controls; header simplified
 
 ## Decisions (current)
 
@@ -37,7 +34,7 @@ Memory rotation policy
 
 ## Ideas / Backlog
 
-- Providers: OpenAI, Gemini (priority), Mistral; Anthropic likely needs proxy.
+- Providers: OpenAI (next), Mistral; Anthropic likely needs proxy.
 - Multi-model fan-out: parallel runs, per-model abort, side-by-side compare.
 - Export/import conversations (JSON); model presets.
 - Developer mode: raw SSE/debug panel; timing/latency stats.
@@ -47,6 +44,6 @@ Memory rotation policy
 
 ## Questions for User
 
-- Which providers/models first after OpenRouter? (OpenAI, Gemini, Mistral)
+- Which providers/models first after OpenRouter + Gemini? (OpenAI, Mistral)
 - Default for “Show reasoning” (ON or OFF) for reasoning models?
 - Preferred auto-lock behavior (timeout length, default on/off)?

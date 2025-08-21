@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { useAppStore } from './store/appStore';
-import { echoProvider } from './providers/echo';
+import { geminiProvider } from './providers/gemini';
 import { openRouterProvider } from './providers/openrouter';
 import { useSecretsStore } from './store/secretsStore';
 import SettingsPanel from './components/settings/SettingsPanel';
@@ -15,7 +15,7 @@ import ChatTabs from './components/ChatTabs';
 import { useModelsStore } from './store/modelsStore';
 import ModelFavoritesSelect from './components/ModelFavoritesSelect';
 
-const providers: Provider[] = [echoProvider, openRouterProvider];
+const providers: Provider[] = [geminiProvider, openRouterProvider];
 
 export default function App() {
   const { theme, setTheme, showReasoning } = useAppStore();
@@ -37,13 +37,14 @@ export default function App() {
   React.useEffect(() => { ensureTab(); }, [ensureTab]);
 
   const provider = useMemo(() => {
-    const pid = activeTab?.providerId ?? 'echo';
+    const pid = activeTab?.providerId ?? 'gemini';
     return providers.find(p => p.id === pid)!;
   }, [activeTab?.providerId]);
 
-  const model = activeTab?.model ?? (provider.id === 'openrouter' ? 'openrouter/auto' : 'echo-1');
+  const model = activeTab?.model ?? (provider.id === 'openrouter' ? 'openrouter/auto' : 'gemini-1.5-flash');
 
   const openrouterKey = getKey('openrouter') ?? undefined;
+  const geminiKey = getKey('gemini') ?? undefined;
 
   async function onSend() {
     if (!input.trim() || isStreaming) return;
@@ -54,13 +55,14 @@ export default function App() {
 
     if (!tabId) {
       tabId = createTab();
-      tabProviderId = 'echo';
-      tabModel = 'echo-1';
+      tabProviderId = 'gemini';
+      tabModel = 'gemini-1.5-flash';
     }
 
-    const curProvider = providers.find(p => p.id === (tabProviderId ?? 'echo'))!;
+    const curProvider = providers.find(p => p.id === (tabProviderId ?? 'gemini'))!;
 
-    if (curProvider.id === 'openrouter' && !openrouterKey) { setShowSettings(true); return; }
+    const missingKey = (curProvider.id === 'openrouter' && !openrouterKey) || (curProvider.id === 'gemini' && !geminiKey);
+    if (missingKey) { setShowSettings(true); return; }
 
     const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: input.trim() };
     pushMessage(tabId, userMsg);
@@ -73,10 +75,10 @@ export default function App() {
     abortRef.current = controller;
     setIsStreaming(true);
 
-    const apiKey = curProvider.id === 'openrouter' ? openrouterKey : 'echo';
+    const apiKey = curProvider.id === 'openrouter' ? openrouterKey : geminiKey;
 
     const baseMessages = activeTab && activeTab.id === tabId ? activeTab.messages : [];
-    const usedModel = tabModel ?? (curProvider.id === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : 'echo-1');
+    const usedModel = tabModel ?? (curProvider.id === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : (getDefaultFor('gemini') ?? 'gemini-1.5-flash'));
 
     const args: SendMessageArgs = {
       model: usedModel,
@@ -102,7 +104,7 @@ export default function App() {
 
   function onStop() { abortRef.current?.abort(); }
 
-  const needsKey = provider.id === 'openrouter' && !openrouterKey;
+  const needsKey = (provider.id === 'openrouter' && !openrouterKey) || (provider.id === 'gemini' && !geminiKey);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -141,12 +143,12 @@ export default function App() {
         <div className="flex items-center gap-2">
           <ProviderSelect
             options={providers.map(p => ({ id: p.id, name: p.name }))}
-            value={activeTab?.providerId ?? 'echo'}
+            value={activeTab?.providerId ?? 'gemini'}
             onChange={(pid) => {
               if (!activeTab) return;
               const nextModel = pid === 'openrouter'
                 ? (getDefaultFor('openrouter') ?? 'openrouter/auto')
-                : (getDefaultFor('echo') ?? 'echo-1');
+                : (getDefaultFor('gemini') ?? 'gemini-1.5-flash');
               setSession(activeTab.id, pid as Provider['id'], nextModel);
             }}
             className="w-48"
@@ -210,8 +212,8 @@ export default function App() {
             <button
               className={`btn ${needsKey ? 'btn-warning' : 'btn-primary'}`}
               onClick={onSend}
-              disabled={(provider.id === 'openrouter' && !openrouterKey) || !activeTab}
-              title={needsKey ? 'Enter your OpenRouter API key' : 'Send'}
+              disabled={(provider.id === 'openrouter' && !openrouterKey) || (provider.id === 'gemini' && !geminiKey) || !activeTab}
+              title={needsKey ? 'Enter your API key' : 'Send'}
             >
               <SquarePen className="h-4 w-4"/> Send
             </button>

@@ -34,8 +34,8 @@ function now() { return Date.now(); }
 function defaultModelFor(pid: Provider['id']): string {
   const getDefaultFor = useModelsStore.getState().getDefaultFor;
   if (pid === 'openrouter') return getDefaultFor('openrouter') ?? 'openrouter/auto';
-  if (pid === 'echo') return getDefaultFor('echo') ?? 'echo-1';
-  return 'echo-1';
+  if (pid === 'gemini') return getDefaultFor('gemini') ?? 'gemini-1.5-flash';
+  return 'gemini-1.5-flash';
 }
 
 export const useChatStore = create<ChatState>()(
@@ -45,7 +45,7 @@ export const useChatStore = create<ChatState>()(
       activeId: null,
       createTab: (init) => {
         const id = crypto.randomUUID();
-        const providerId = (init?.providerId as Provider['id']) ?? 'echo';
+        const providerId = (init?.providerId as Provider['id']) ?? 'gemini';
         const model = init?.model ?? defaultModelFor(providerId);
         const tab: ChatTab = {
           id,
@@ -68,7 +68,7 @@ export const useChatStore = create<ChatState>()(
           if (s.activeId === id) {
             if (tabs.length === 0) {
               const newId = crypto.randomUUID();
-              const providerId: Provider['id'] = 'echo';
+              const providerId: Provider['id'] = 'gemini';
               const model = defaultModelFor(providerId);
               const tab: ChatTab = { id: newId, title: 'New chat', providerId, model, messages: [], createdAt: now(), updatedAt: now() };
               return { tabs: [tab], activeId: newId };
@@ -92,7 +92,7 @@ export const useChatStore = create<ChatState>()(
         const s = get();
         if (s.tabs.length === 0) {
           const id = crypto.randomUUID();
-          const providerId: Provider['id'] = 'echo';
+          const providerId: Provider['id'] = 'gemini';
           const model = defaultModelFor(providerId);
           const tab: ChatTab = { id, title: 'New chat', providerId, model, messages: [], createdAt: now(), updatedAt: now() };
           set({ tabs: [tab], activeId: id });
