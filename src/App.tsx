@@ -246,9 +246,8 @@ export default function App() {
               <div key={m.id} className={m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}>
                 <div className={
                   (m.role === 'user'
-                    ? 'bg-blue-600/90 text-white'
-                    : 'bg-zinc-50 dark:bg-zinc-900/70 text-zinc-800 dark:text-zinc-100') +
-                  ' rounded-lg px-3 py-2 whitespace-pre-wrap'
+                    ? 'bg-blue-600/90 text-white rounded-lg px-3 py-2 whitespace-pre-wrap'
+                    : 'assistant-bubble whitespace-pre-wrap')
                 }>
                   {m.role === 'assistant' ? (
                     (m.content?.trim()?.length ?? 0) === 0 && isStreaming && idx === (activeTab.messages.length - 1)

@@ -14,6 +14,8 @@
   --ring: #3b82f6; /* blue-500 */
   --link: #2563eb; /* blue-600 */
   --code-bg: #f6f8fa; /* light code block bg */
+  --assistant-bg: #ffffff; /* assistant bubble bg (light) */
+  --assistant-text: #18181b; /* assistant text (light) */
 }
 
 .dark {
@@ -27,6 +29,8 @@
   --ring: #60a5fa; /* blue-400 */
   --link: #60a5fa; /* blue-400 */
   --code-bg: #0f1115; /* dark code block bg */
+  --assistant-bg: #101214; /* assistant bubble bg (dark) */
+  --assistant-text: #e4e4e7; /* assistant text (dark) */
 }
 
 :root { color-scheme: light dark; }
@@ -65,20 +69,23 @@ body { background: var(--bg); color: var(--text); }
 
   .badge { @apply inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200; }
 
-  /* Markdown readability */
-  .markdown { line-height: 1.65; word-wrap: break-word; overflow-wrap: anywhere; }
-  .markdown p { margin: 0.5rem 0; }
-  .markdown h1 { font-size: 1.3rem; font-weight: 700; margin: 1rem 0 0.5rem; }
-  .markdown h2 { font-size: 1.2rem; font-weight: 700; margin: 1rem 0 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
-  .markdown h3 { font-size: 1.1rem; font-weight: 600; margin: 0.75rem 0 0.4rem; }
-  .markdown ul, .markdown ol { margin: 0.5rem 0 0.75rem 1.25rem; }
-  .markdown li { margin: 0.25rem 0; }
+  /* Assistant bubble styling: clearer separation from background */
+  .assistant-bubble { background: var(--assistant-bg); color: var(--assistant-text); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.5rem 0.75rem; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+
+  /* Markdown readability (more compact) */
+  .markdown { line-height: 1.45; word-wrap: break-word; overflow-wrap: anywhere; }
+  .markdown p { margin: 0.25rem 0; }
+  .markdown h1 { font-size: 1.22rem; font-weight: 700; margin: 0.7rem 0 0.35rem; }
+  .markdown h2 { font-size: 1.12rem; font-weight: 700; margin: 0.6rem 0 0.3rem; border-bottom: 1px solid var(--border); padding-bottom: 0.18rem; }
+  .markdown h3 { font-size: 1.04rem; font-weight: 600; margin: 0.5rem 0 0.3rem; }
+  .markdown ul, .markdown ol { margin: 0.3rem 0 0.5rem 1rem; }
+  .markdown li { margin: 0.15rem 0; }
   .markdown a { color: var(--link); text-underline-offset: 2px; }
   .markdown a:hover { filter: brightness(1.1); }
-  .markdown code:not(pre code) { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0.375rem; padding: 0.1rem 0.35rem; font-size: 0.9em; }
-  .markdown pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.75rem; overflow: auto; }
-  .markdown pre code { background: transparent; border: 0; padding: 0; font-size: 0.9em; line-height: 1.5; display: block; }
-  .markdown blockquote { border-left: 3px solid var(--border); padding: 0.25rem 0.75rem; margin: 0.75rem 0; color: var(--muted); background: color-mix(in oklab, var(--surface) 90%, transparent); border-radius: 0.25rem; }
-  .markdown table { border-collapse: collapse; margin: 0.5rem 0; width: 100%; }
-  .markdown th, .markdown td { border: 1px solid var(--border); padding: 0.4rem 0.5rem; text-align: left; }
+  .markdown code:not(pre code) { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0.375rem; padding: 0.06rem 0.28rem; font-size: 0.9em; }
+  .markdown pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.5rem; overflow: auto; }
+  .markdown pre code { background: transparent; border: 0; padding: 0; font-size: 0.9em; line-height: 1.4; display: block; }
+  .markdown blockquote { border-left: 3px solid var(--border); padding: 0.18rem 0.6rem; margin: 0.5rem 0; color: var(--muted); background: color-mix(in oklab, var(--surface) 90%, transparent); border-radius: 0.25rem; }
+  .markdown table { border-collapse: collapse; margin: 0.35rem 0; width: 100%; }
+  .markdown th, .markdown td { border: 1px solid var(--border); padding: 0.3rem 0.4rem; text-align: left; }
 }
