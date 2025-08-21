@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { EncryptedPayload } from '../core/crypto';
 import { encryptString, decryptString } from '../core/crypto';
 
@@ -78,6 +78,7 @@ export const useSecretsStore = create<SecretsState>()(
     }),
     {
       name: 'io-ai:secrets',
+      storage: createJSONStorage(() => localStorage),
       version: 2,
       partialize: (state) => ({
         encryptedBlob: state.encryptedBlob,
