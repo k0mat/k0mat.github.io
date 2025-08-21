@@ -12,6 +12,7 @@ import type { Provider, SendMessageArgs } from './providers/adapters';
 import ProviderSelect from './components/ProviderSelect';
 import { useChatStore } from './store/chatStore';
 import ChatTabs from './components/ChatTabs';
+import { useModelsStore } from './store/modelsStore';
 
 const providers: Provider[] = [echoProvider, openRouterProvider];
 
@@ -19,6 +20,7 @@ export default function App() {
   const { theme, setTheme, showReasoning } = useAppStore();
   const { getKey } = useSecretsStore();
   const { tabs, activeId, ensureTab, setSession, pushMessage, appendToMessage, createTab } = useChatStore();
+  const { getDefaultFor } = useModelsStore();
   const activeTab = tabs.find(t => t.id === activeId) || null;
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -42,12 +44,16 @@ export default function App() {
 
   React.useEffect(() => {
     if (!activeTab) return;
-    if (activeTab.providerId === 'echo' && !activeTab.model.startsWith('echo')) {
+    const pid = activeTab.providerId;
+    const needsEchoDefault = pid === 'echo' && !activeTab.model.startsWith('echo');
+    const needsOpenRouterDefault = pid === 'openrouter' && !activeTab.model.startsWith('openrouter');
+    if (needsEchoDefault) {
       setSession(activeTab.id, 'echo', 'echo-1');
-    } else if (activeTab.providerId === 'openrouter' && !activeTab.model.startsWith('openrouter')) {
-      setSession(activeTab.id, 'openrouter', 'openrouter/auto');
+    } else if (needsOpenRouterDefault) {
+      const d = getDefaultFor('openrouter') ?? 'openrouter/auto';
+      setSession(activeTab.id, 'openrouter', d);
     }
-  }, [activeTab?.providerId, activeTab?.id, activeTab?.model, setSession]);
+  }, [activeTab?.providerId, activeTab?.id, activeTab?.model, setSession, getDefaultFor]);
 
   const openrouterKey = getKey('openrouter') ?? undefined;
 
@@ -82,7 +88,7 @@ export default function App() {
     const apiKey = curProvider.id === 'openrouter' ? openrouterKey : 'echo';
 
     const baseMessages = activeTab && activeTab.id === tabId ? activeTab.messages : [];
-    const usedModel = tabModel ?? (curProvider.id === 'openrouter' ? 'openrouter/auto' : 'echo-1');
+    const usedModel = tabModel ?? (curProvider.id === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : 'echo-1');
 
     const args: SendMessageArgs = {
       model: usedModel,
@@ -150,7 +156,7 @@ export default function App() {
             value={activeTab?.providerId ?? 'echo'}
             onChange={(pid) => {
               if (!activeTab) return;
-              const nextModel = pid === 'openrouter' ? 'openrouter/auto' : 'echo-1';
+              const nextModel = pid === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : 'echo-1';
               setSession(activeTab.id, pid as Provider['id'], nextModel);
             }}
             className="w-48"

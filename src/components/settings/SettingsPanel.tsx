@@ -1,9 +1,10 @@
 import React from 'react';
 import SecretsSection from './SecretsSection';
 import ChatPrefsSection from './ChatPrefsSection';
+import ModelsSection from './ModelsSection';
 import { X } from 'lucide-react';
 
-export type SettingsSectionKey = 'secrets' | 'chat';
+export type SettingsSectionKey = 'secrets' | 'chat' | 'models';
 
 export default function SettingsPanel({ open, onClose, initial }: { open: boolean; onClose: () => void; initial?: SettingsSectionKey }) {
   const [section, setSection] = React.useState<SettingsSectionKey>(initial ?? 'secrets');
@@ -63,6 +64,7 @@ export default function SettingsPanel({ open, onClose, initial }: { open: boolea
           <div id="settings-title" className="text-sm font-medium mb-2">Settings</div>
           <nav className="flex flex-col gap-1">
             <button className={`btn btn-outline ${section==='secrets' ? 'bg-zinc-100 dark:bg-zinc-800' : ''}`} onClick={()=>setSection('secrets')}>Secrets</button>
+            <button className={`btn btn-outline ${section==='models' ? 'bg-zinc-100 dark:bg-zinc-800' : ''}`} onClick={()=>setSection('models')}>Models</button>
             <button className={`btn btn-outline ${section==='chat' ? 'bg-zinc-100 dark:bg-zinc-800' : ''}`} onClick={()=>setSection('chat')}>Chat Preferences</button>
           </nav>
         </aside>
@@ -77,6 +79,7 @@ export default function SettingsPanel({ open, onClose, initial }: { open: boolea
             <X className="h-5 w-5" />
           </button>
           {section === 'secrets' && <SecretsSection />}
+          {section === 'models' && <ModelsSection />}
           {section === 'chat' && <ChatPrefsSection />}
         </main>
       </div>

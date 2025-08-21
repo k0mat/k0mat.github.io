@@ -15,13 +15,10 @@ Memory rotation policy
 - Provide fallback copy to guide users to enter a key in Settings if none present.
 - Success: no Echo code path; tests green with new mocks.
 
-2) Settings: Models section per provider
-- New section to manage visible models per provider and set defaults.
-- For OpenRouter: allow listing favorite model IDs and picking a default.
-- Success: per-provider model list stored locally and used by tab selector.
-
 ## Recently Shipped (last 5)
 
+- Models settings (OpenRouter)
+  - Favorites list + default model; App uses default on provider switch and when unset during send
 - Chat tabs system (MVP)
   - Add/close/switch tabs; persisted via Zustand; keyboard and mouse friendly; tests still green
 - Provider/model controls per tab
@@ -30,8 +27,6 @@ Memory rotation policy
   - Header button switched to gear icon; amber warning state preserved when keys missing; tests green (3/3)
 - UI polish (header and initial chat)
   - Removed top-bar “Show reasoning”; neutral initial chat; improved Settings close UX (X, Escape)
-- Key validation (OpenRouter)
-  - Validate button in Secrets; GET /api/v1/models; success/error surfaced; toasts added
 
 ## Decisions (current)
 
