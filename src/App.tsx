@@ -52,7 +52,7 @@ function safeScrollToBottom(el: HTMLElement, behavior: ScrollBehavior) {
 }
 
 export default function App() {
-  const { theme, setTheme, showReasoning, autoScrollEnabled } = useAppStore();
+  const { theme, setTheme, showReasoning, autoScrollEnabled, autoCollapseEnabled, collapseAgeMessages, collapseMinLength } = useAppStore();
   // Subscribe to secrets values to re-render after hydration
   const openrouterKey = useSecretsStore(s => s.secrets['openrouter'] ?? null) ?? undefined;
   const geminiKey = useSecretsStore(s => s.secrets['gemini'] ?? null) ?? undefined;
@@ -64,6 +64,9 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const toggleExpanded = (id: string, v?: boolean) => setExpanded((prev) => ({ ...prev, [id]: v ?? !prev[id] }));
 
   React.useEffect(() => {
     const root = document.documentElement;
@@ -109,6 +112,27 @@ export default function App() {
       safeScrollToBottom(el, prefersReduced ? 'auto' : 'smooth');
     }
   }, [autoScrollEnabled, autoScrollAnchor]);
+
+  // Helper: determine if a message should auto-collapse
+  const shouldCollapse = (m: { role: string; content: string; createdAt?: number }, idx: number, total: number) => {
+    if (!autoCollapseEnabled) return false;
+    if (m.role !== 'assistant') return false;
+    // Don't collapse the actively streaming last assistant message
+    const isLast = idx === total - 1;
+    if (isLast && isStreaming) return false;
+    const lengthOk = (m.content?.length ?? 0) >= collapseMinLength;
+    const newerCount = Math.max(0, total - idx - 1);
+    const ageOk = newerCount >= collapseAgeMessages;
+    return lengthOk && ageOk;
+  };
+
+  const previewOf = (text: string, limit = 300) => {
+    if ((text?.length ?? 0) <= limit) return text;
+    // Try to cut on a safe boundary
+    const slice = text.slice(0, limit);
+    const lastBreak = Math.max(slice.lastIndexOf('\n'), slice.lastIndexOf(' '));
+    return (lastBreak > 200 ? slice.slice(0, lastBreak) : slice) + '…';
+  };
 
   async function onSend() {
     if (!input.trim() || isStreaming) return;
@@ -242,54 +266,72 @@ export default function App() {
           {!activeTab ? (
             <div className="text-sm text-zinc-500">Preparing your first chat…</div>
           ) : (
-            activeTab.messages.map((m, idx) => (
-              <div key={m.id} className={m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}>
-                <div className={
-                  (m.role === 'user'
-                    ? 'bg-blue-600/90 text-white rounded-lg px-3 py-2 whitespace-pre-wrap'
-                    : 'assistant-bubble whitespace-pre-wrap')
-                }>
-                  {m.role === 'assistant' ? (
-                    (m.content?.trim()?.length ?? 0) === 0 && isStreaming && idx === (activeTab.messages.length - 1)
-                      ? (
-                        <span className="typing text-zinc-500 dark:text-zinc-400" aria-label="Assistant is typing">
-                          <span className="dot"/>
-                          <span className="dot"/>
-                          <span className="dot"/>
-                        </span>
-                      ) : (
-                        <ReactMarkdown
-                          className="markdown"
-                          remarkPlugins={[remarkGfm as unknown as any]}
-                          rehypePlugins={[[rehypeSanitize as any, mdSanitizeSchema], rehypeHighlight as unknown as any]}
-                          components={{
-                            a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" />,
-                          }}
-                        >
-                          {m.content}
-                        </ReactMarkdown>
-                      )
-                  ) : (
-                    <ReactMarkdown
-                      className="markdown"
-                      remarkPlugins={[remarkGfm as unknown as any]}
-                      rehypePlugins={[[rehypeSanitize as any, mdSanitizeSchema], rehypeHighlight as unknown as any]}
-                      components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
-                    >
-                      {m.content}
-                    </ReactMarkdown>
-                  )}
+            activeTab.messages.map((m, idx) => {
+              const total = activeTab.messages.length;
+              const collapsedByRule = shouldCollapse(m as any, idx, total);
+              const isExpanded = !!expanded[m.id];
+              const collapsed = collapsedByRule && !isExpanded;
+              const contentToRender = collapsed ? previewOf(m.content) : m.content;
+              return (
+                <div key={m.id} className={m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}>
+                  <div className={
+                    (m.role === 'user'
+                      ? 'bg-blue-600/90 text-white rounded-lg px-3 py-2 whitespace-pre-wrap'
+                      : 'assistant-bubble whitespace-pre-wrap')
+                  }>
+                    {m.role === 'assistant' ? (
+                      (m.content?.trim()?.length ?? 0) === 0 && isStreaming && idx === (activeTab.messages.length - 1)
+                        ? (
+                          <span className="typing text-zinc-500 dark:text-zinc-400" aria-label="Assistant is typing">
+                            <span className="dot"/>
+                            <span className="dot"/>
+                            <span className="dot"/>
+                          </span>
+                        ) : (
+                          <>
+                            <ReactMarkdown
+                              className="markdown"
+                              remarkPlugins={[remarkGfm as unknown as any]}
+                              rehypePlugins={[[rehypeSanitize as any, mdSanitizeSchema], rehypeHighlight as unknown as any]}
+                              components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
+                            >
+                              {contentToRender}
+                            </ReactMarkdown>
+                            {collapsedByRule && (
+                              <div className="mt-2 flex items-center gap-2">
+                                <button className="btn btn-outline text-xs" onClick={() => toggleExpanded(m.id, true)} title="Expand message">Expand</button>
+                                <span className="text-[11px] text-zinc-500">Auto-collapsed: old and long</span>
+                              </div>
+                            )}
+                            {!collapsed && collapsedByRule && (
+                              <div className="mt-2">
+                                <button className="btn btn-outline text-xs" onClick={() => toggleExpanded(m.id, false)} title="Collapse message">Collapse</button>
+                              </div>
+                            )}
+                          </>
+                        )
+                    ) : (
+                      <ReactMarkdown
+                        className="markdown"
+                        remarkPlugins={[remarkGfm as unknown as any]}
+                        rehypePlugins={[[rehypeSanitize as any, mdSanitizeSchema], rehypeHighlight as unknown as any]}
+                        components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
+                      >
+                        {m.content}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+                  <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
+                    {m.role === 'assistant' && m.modelUsed && (
+                      <span className="badge">{m.modelUsed}</span>
+                    )}
+                    {(() => { const ts = (m as any).createdAt; return (typeof ts === 'number' && !Number.isNaN(ts)) ? (
+                      <span title={new Date(ts).toLocaleString()}>{formatTime(ts)}</span>
+                    ) : null; })()}
+                  </div>
                 </div>
-                <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-                  {m.role === 'assistant' && m.modelUsed && (
-                    <span className="badge">{m.modelUsed}</span>
-                  )}
-                  {(() => { const ts = (m as any).createdAt; return (typeof ts === 'number' && !Number.isNaN(ts)) ? (
-                    <span title={new Date(ts).toLocaleString()}>{formatTime(ts)}</span>
-                  ) : null; })()}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
