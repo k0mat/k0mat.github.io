@@ -3,6 +3,8 @@ import { MessageSquare, SquarePen, StopCircle, Sun, Moon, Settings as SettingsIc
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
+import rehypeSanitize from 'rehype-sanitize';
+import { defaultSchema } from 'hast-util-sanitize';
 import { useAppStore } from './store/appStore';
 import { geminiProvider } from './providers/gemini';
 import { openRouterProvider } from './providers/openrouter';
@@ -17,6 +19,18 @@ import ModelFavoritesSelect from './components/ModelFavoritesSelect';
 import { maybeAutoName } from './lib/autoTitle';
 
 const providers: Provider[] = [geminiProvider, openRouterProvider];
+
+// Build a sanitize schema that preserves code/pre classes for syntax highlighting
+const mdSanitizeSchema: any = {
+  ...defaultSchema,
+  attributes: {
+    ...(defaultSchema as any).attributes,
+    code: [ ...(((defaultSchema as any).attributes?.code) || []), ['className'], ['data-language'] ],
+    pre:  [ ...(((defaultSchema as any).attributes?.pre)  || []), ['className'] ],
+    span: [ ...(((defaultSchema as any).attributes?.span) || []), ['className'] ],
+    a:    [ ...(((defaultSchema as any).attributes?.a)   || []), ['target'], ['rel'] ],
+  },
+};
 
 function formatTime(ts: number) {
   try {
@@ -230,7 +244,12 @@ export default function App() {
           ) : (
             activeTab.messages.map((m, idx) => (
               <div key={m.id} className={m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}>
-                <div className={(m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100') + ' rounded-lg px-3 py-2 whitespace-pre-wrap'}>
+                <div className={
+                  (m.role === 'user'
+                    ? 'bg-blue-600/90 text-white'
+                    : 'bg-zinc-50 dark:bg-zinc-900/70 text-zinc-800 dark:text-zinc-100') +
+                  ' rounded-lg px-3 py-2 whitespace-pre-wrap'
+                }>
                   {m.role === 'assistant' ? (
                     (m.content?.trim()?.length ?? 0) === 0 && isStreaming && idx === (activeTab.messages.length - 1)
                       ? (
@@ -241,14 +260,25 @@ export default function App() {
                         </span>
                       ) : (
                         <ReactMarkdown
+                          className="markdown"
                           remarkPlugins={[remarkGfm as unknown as any]}
-                          rehypePlugins={[rehypeHighlight as unknown as any]}
+                          rehypePlugins={[[rehypeSanitize as any, mdSanitizeSchema], rehypeHighlight as unknown as any]}
+                          components={{
+                            a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" />,
+                          }}
                         >
                           {m.content}
                         </ReactMarkdown>
                       )
                   ) : (
-                    m.content
+                    <ReactMarkdown
+                      className="markdown"
+                      remarkPlugins={[remarkGfm as unknown as any]}
+                      rehypePlugins={[[rehypeSanitize as any, mdSanitizeSchema], rehypeHighlight as unknown as any]}
+                      components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
+                    >
+                      {m.content}
+                    </ReactMarkdown>
                   )}
                 </div>
                 <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">

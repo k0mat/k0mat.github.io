@@ -4,25 +4,29 @@
 
 :root {
   /* Theme tokens */
-  --bg: #ffffff;
+  --bg: #fcfcfd; /* softer than pure white */
   --text: #18181b; /* zinc-900 */
   --muted: #52525b; /* zinc-600 */
-  --surface: #f4f4f5; /* zinc-100 */
-  --border: #e4e4e7; /* zinc-200 */
+  --surface: #f5f5f6; /* slightly lighter zinc-100 */
+  --border: #e5e7eb; /* neutral border */
   --control-bg: #ffffff;
   --control-text: #18181b;
   --ring: #3b82f6; /* blue-500 */
+  --link: #2563eb; /* blue-600 */
+  --code-bg: #f6f8fa; /* light code block bg */
 }
 
 .dark {
-  --bg: #0b0b0c; /* near zinc-950 */
+  --bg: #0e0f11; /* slightly lighter than pure black */
   --text: #e4e4e7; /* zinc-200 */
   --muted: #a1a1aa; /* zinc-400 */
-  --surface: #18181b; /* zinc-900 */
-  --border: #27272a; /* zinc-800 */
+  --surface: #141416; /* softer contrast than zinc-900 */
+  --border: #2a2a2e; /* softer dark border */
   --control-bg: #0f0f10;
   --control-text: #e4e4e7;
   --ring: #60a5fa; /* blue-400 */
+  --link: #60a5fa; /* blue-400 */
+  --code-bg: #0f1115; /* dark code block bg */
 }
 
 :root { color-scheme: light dark; }
@@ -60,4 +64,21 @@ body { background: var(--bg); color: var(--text); }
   .textarea { @apply px-3 py-2; }
 
   .badge { @apply inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200; }
+
+  /* Markdown readability */
+  .markdown { line-height: 1.65; word-wrap: break-word; overflow-wrap: anywhere; }
+  .markdown p { margin: 0.5rem 0; }
+  .markdown h1 { font-size: 1.3rem; font-weight: 700; margin: 1rem 0 0.5rem; }
+  .markdown h2 { font-size: 1.2rem; font-weight: 700; margin: 1rem 0 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+  .markdown h3 { font-size: 1.1rem; font-weight: 600; margin: 0.75rem 0 0.4rem; }
+  .markdown ul, .markdown ol { margin: 0.5rem 0 0.75rem 1.25rem; }
+  .markdown li { margin: 0.25rem 0; }
+  .markdown a { color: var(--link); text-underline-offset: 2px; }
+  .markdown a:hover { filter: brightness(1.1); }
+  .markdown code:not(pre code) { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0.375rem; padding: 0.1rem 0.35rem; font-size: 0.9em; }
+  .markdown pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.75rem; overflow: auto; }
+  .markdown pre code { background: transparent; border: 0; padding: 0; font-size: 0.9em; line-height: 1.5; display: block; }
+  .markdown blockquote { border-left: 3px solid var(--border); padding: 0.25rem 0.75rem; margin: 0.75rem 0; color: var(--muted); background: color-mix(in oklab, var(--surface) 90%, transparent); border-radius: 0.25rem; }
+  .markdown table { border-collapse: collapse; margin: 0.5rem 0; width: 100%; }
+  .markdown th, .markdown td { border: 1px solid var(--border); padding: 0.4rem 0.5rem; text-align: left; }
 }
