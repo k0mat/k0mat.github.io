@@ -39,6 +39,7 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     const root = document.documentElement;
@@ -47,6 +48,17 @@ export default function App() {
   }, [theme]);
 
   React.useEffect(() => { ensureTab(); }, [ensureTab]);
+
+  // Auto-scroll to bottom when messages update
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // smooth scroll only when already near bottom
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    if (nearBottom) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }
+  }, [activeTab?.messages?.length]);
 
   const provider = useMemo(() => {
     const pid = activeTab?.providerId ?? 'gemini';
@@ -118,7 +130,7 @@ export default function App() {
   const needsKey = (provider.id === 'openrouter' && !openrouterKey) || (provider.id === 'gemini' && !geminiKey);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col">
       <header className="border-b border-zinc-200 dark:border-zinc-800 p-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200">
           <MessageSquare className="h-5 w-5" />
@@ -149,7 +161,7 @@ export default function App() {
 
       <ChatTabs />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col gap-4">
+      <main className="flex-1 overflow-hidden min-h-0 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col gap-4">
         {/* Per-session controls */}
         <div className="flex items-center gap-2">
           <ProviderSelect
@@ -179,7 +191,7 @@ export default function App() {
           <span className="badge">{provider.name}</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto card flex flex-col gap-4">
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto card flex flex-col gap-4">
           {!activeTab ? (
             <div className="text-sm text-zinc-500">Preparing your first chat…</div>
           ) : (
