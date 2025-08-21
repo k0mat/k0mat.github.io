@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Provider } from '../providers/adapters';
+import { useModelsStore } from './modelsStore';
 
 export type Role = 'user' | 'assistant' | 'system';
 export type ChatMessage = { id: string; role: Role; content: string };
@@ -30,6 +31,13 @@ interface ChatState {
 
 function now() { return Date.now(); }
 
+function defaultModelFor(pid: Provider['id']): string {
+  const getDefaultFor = useModelsStore.getState().getDefaultFor;
+  if (pid === 'openrouter') return getDefaultFor('openrouter') ?? 'openrouter/auto';
+  if (pid === 'echo') return getDefaultFor('echo') ?? 'echo-1';
+  return 'echo-1';
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
@@ -37,11 +45,13 @@ export const useChatStore = create<ChatState>()(
       activeId: null,
       createTab: (init) => {
         const id = crypto.randomUUID();
+        const providerId = (init?.providerId as Provider['id']) ?? 'echo';
+        const model = init?.model ?? defaultModelFor(providerId);
         const tab: ChatTab = {
           id,
           title: init?.title ?? 'New chat',
-          providerId: (init?.providerId as Provider['id']) ?? 'echo',
-          model: init?.model ?? 'echo-1',
+          providerId,
+          model,
           messages: [],
           createdAt: now(),
           updatedAt: now(),
@@ -57,13 +67,14 @@ export const useChatStore = create<ChatState>()(
           let activeId = s.activeId;
           if (s.activeId === id) {
             if (tabs.length === 0) {
-              // create a fresh tab
               const newId = crypto.randomUUID();
-              const tab: ChatTab = { id: newId, title: 'New chat', providerId: 'echo', model: 'echo-1', messages: [], createdAt: now(), updatedAt: now() };
+              const providerId: Provider['id'] = 'echo';
+              const model = defaultModelFor(providerId);
+              const tab: ChatTab = { id: newId, title: 'New chat', providerId, model, messages: [], createdAt: now(), updatedAt: now() };
               return { tabs: [tab], activeId: newId };
             }
             const nextIdx = Math.max(0, idx - 1);
-            activeId = tabs[nextIdx].id;
+            activeId = tabs[nextIdx]?.id ?? null;
           }
           return { tabs, activeId };
         });
@@ -74,17 +85,16 @@ export const useChatStore = create<ChatState>()(
       pushMessage: (id, msg) => set((s) => ({ tabs: s.tabs.map(t => t.id === id ? { ...t, messages: [...t.messages, msg], updatedAt: now() } : t) })),
       appendToMessage: (id, messageId, chunk) => set((s) => ({ tabs: s.tabs.map(t => {
         if (t.id !== id) return t;
-        return {
-          ...t,
-          messages: t.messages.map(m => m.id === messageId ? { ...m, content: (m.content ?? '') + chunk } : m),
-          updatedAt: now(),
-        };
+        const msgs = (t.messages ?? []).map(m => m.id === messageId ? { ...m, content: (m.content ?? '') + chunk } : m);
+        return { ...t, messages: msgs, updatedAt: now() };
       }) })),
       ensureTab: () => {
         const s = get();
         if (s.tabs.length === 0) {
           const id = crypto.randomUUID();
-          const tab: ChatTab = { id, title: 'New chat', providerId: 'echo', model: 'echo-1', messages: [], createdAt: now(), updatedAt: now() };
+          const providerId: Provider['id'] = 'echo';
+          const model = defaultModelFor(providerId);
+          const tab: ChatTab = { id, title: 'New chat', providerId, model, messages: [], createdAt: now(), updatedAt: now() };
           set({ tabs: [tab], activeId: id });
         } else if (!s.activeId) {
           set({ activeId: s.tabs[0].id });
@@ -98,4 +108,3 @@ export const useChatStore = create<ChatState>()(
     }
   )
 );
-

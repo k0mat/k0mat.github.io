@@ -13,6 +13,7 @@ import ProviderSelect from './components/ProviderSelect';
 import { useChatStore } from './store/chatStore';
 import ChatTabs from './components/ChatTabs';
 import { useModelsStore } from './store/modelsStore';
+import ModelFavoritesSelect from './components/ModelFavoritesSelect';
 
 const providers: Provider[] = [echoProvider, openRouterProvider];
 
@@ -41,19 +42,6 @@ export default function App() {
   }, [activeTab?.providerId]);
 
   const model = activeTab?.model ?? (provider.id === 'openrouter' ? 'openrouter/auto' : 'echo-1');
-
-  React.useEffect(() => {
-    if (!activeTab) return;
-    const pid = activeTab.providerId;
-    const needsEchoDefault = pid === 'echo' && !activeTab.model.startsWith('echo');
-    const needsOpenRouterDefault = pid === 'openrouter' && !activeTab.model.startsWith('openrouter');
-    if (needsEchoDefault) {
-      setSession(activeTab.id, 'echo', 'echo-1');
-    } else if (needsOpenRouterDefault) {
-      const d = getDefaultFor('openrouter') ?? 'openrouter/auto';
-      setSession(activeTab.id, 'openrouter', d);
-    }
-  }, [activeTab?.providerId, activeTab?.id, activeTab?.model, setSession, getDefaultFor]);
 
   const openrouterKey = getKey('openrouter') ?? undefined;
 
@@ -156,7 +144,9 @@ export default function App() {
             value={activeTab?.providerId ?? 'echo'}
             onChange={(pid) => {
               if (!activeTab) return;
-              const nextModel = pid === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : 'echo-1';
+              const nextModel = pid === 'openrouter'
+                ? (getDefaultFor('openrouter') ?? 'openrouter/auto')
+                : (getDefaultFor('echo') ?? 'echo-1');
               setSession(activeTab.id, pid as Provider['id'], nextModel);
             }}
             className="w-48"
@@ -167,6 +157,12 @@ export default function App() {
             onChange={e => { if (activeTab) setSession(activeTab.id, activeTab.providerId, e.target.value); }}
             placeholder="model"
           />
+          {activeTab && (
+            <ModelFavoritesSelect
+              providerId={activeTab.providerId}
+              onSelect={(m) => setSession(activeTab!.id, activeTab!.providerId, m)}
+            />
+          )}
           <span className="badge">{provider.name}</span>
         </div>
 
