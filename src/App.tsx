@@ -14,15 +14,25 @@ import { useChatStore } from './store/chatStore';
 import ChatTabs from './components/ChatTabs';
 import { useModelsStore } from './store/modelsStore';
 import ModelFavoritesSelect from './components/ModelFavoritesSelect';
+import { maybeAutoName } from './lib/autoTitle';
 
 const providers: Provider[] = [geminiProvider, openRouterProvider];
+
+function formatTime(ts: number) {
+  try {
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
 
 export default function App() {
   const { theme, setTheme, showReasoning } = useAppStore();
   // Subscribe to secrets values to re-render after hydration
   const openrouterKey = useSecretsStore(s => s.secrets['openrouter'] ?? null) ?? undefined;
   const geminiKey = useSecretsStore(s => s.secrets['gemini'] ?? null) ?? undefined;
-  const { tabs, activeId, ensureTab, setSession, pushMessage, appendToMessage, createTab } = useChatStore();
+  const { tabs, activeId, ensureTab, setSession, pushMessage, appendToMessage, createTab, renameTab } = useChatStore();
   const { getDefaultFor } = useModelsStore();
   const activeTab = tabs.find(t => t.id === activeId) || null;
   const [input, setInput] = useState('');
@@ -63,12 +73,13 @@ export default function App() {
     const missingKey = (curProvider.id === 'openrouter' && !openrouterKey) || (curProvider.id === 'gemini' && !geminiKey);
     if (missingKey) { setShowSettings(true); return; }
 
-    const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: input.trim() };
+    const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: input.trim(), createdAt: Date.now() };
     pushMessage(tabId, userMsg);
     setInput('');
 
     const assistantId = crypto.randomUUID();
-    pushMessage(tabId, { id: assistantId, role: 'assistant', content: '' });
+    const usedModel = tabModel ?? (curProvider.id === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : (getDefaultFor('gemini') ?? 'gemini-1.5-flash'));
+    pushMessage(tabId, { id: assistantId, role: 'assistant', content: '', createdAt: Date.now(), modelUsed: usedModel });
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -77,11 +88,10 @@ export default function App() {
     const apiKey = curProvider.id === 'openrouter' ? openrouterKey : geminiKey;
 
     const baseMessages = activeTab && activeTab.id === tabId ? activeTab.messages : [];
-    const usedModel = tabModel ?? (curProvider.id === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : (getDefaultFor('gemini') ?? 'gemini-1.5-flash'));
 
     const args: SendMessageArgs = {
       model: usedModel,
-      messages: [...baseMessages, userMsg],
+      messages: [...baseMessages.map(m => ({ role: m.role, content: m.content })), { role: 'user', content: userMsg.content }],
       apiKey,
       temperature: 0.2,
       maxTokens: 512,
@@ -98,6 +108,8 @@ export default function App() {
     } finally {
       setIsStreaming(false);
       abortRef.current = null;
+      // Best-effort auto naming on Fibonacci triggers
+      await maybeAutoName(tabId, curProvider, apiKey, usedModel);
     }
   }
 
@@ -183,6 +195,14 @@ export default function App() {
                     </ReactMarkdown>
                   ) : (
                     m.content
+                  )}
+                </div>
+                <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
+                  {m.role === 'assistant' && m.modelUsed && (
+                    <span className="badge">{m.modelUsed}</span>
+                  )}
+                  {typeof m.createdAt === 'number' && !Number.isNaN(m.createdAt) && (
+                    <span title={new Date(m.createdAt).toLocaleString()}>{formatTime(m.createdAt)}</span>
                   )}
                 </div>
               </div>

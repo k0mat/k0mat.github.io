@@ -10,20 +10,23 @@ Memory rotation policy
 
 ## Active Work (current)
 
-- (none)
+- OpenAI provider adapter
+  - Add adapter with streaming, key entry in Settings, and basic tests
+- Multi-model fan-out (compare models side-by-side)
+  - Parallel runs, per-model abort/retry, simple side-by-side UI
 
 ## Recently Shipped (last 5)
 
-- Remove Echo demo provider; add Gemini provider
-  - Echo removed from UI and defaults; Gemini adapter added; Secrets/Models updated; tests green
-- Model favorites dropdown
-  - Favorites picker next to model input; selecting a favorite updates the session model
-- Echo default model fix
-  - Per-provider defaults applied on new tabs and provider switch; removed auto-correct override that reset Echo models
-- Models settings (multi-provider)
-  - Models section supports multiple providers (OpenRouter + Gemini); favorites + default per provider
-- Chat tabs system (MVP)
-  - Add/close/switch tabs; persisted via Zustand; keyboard and mouse friendly; tests still green
+- Message timestamps
+  - Added createdAt to ChatMessage; render relative HH:MM with full timestamp on hover; safely hidden for legacy messages
+- Show model name on LLM responses
+  - Assistant messages display the model used as a small badge
+- Auto chat tab naming (Fibonacci-triggered)
+  - After 1, 2, 3, 5, 8, ... user messages, the app asks the current model for a concise title and updates the tab name
+- Simplified secrets storage (no encryption at rest)
+  - Removed passphrase/unlock flow; keys persist plainly via localStorage; Settings UI cleaned up; tests/docs updated
+- Removed storage versioning/migrations for now
+  - Dropped version/migrate logic from persisted stores to reduce complexity until first stable
 
 ## Decisions (current)
 
@@ -31,11 +34,14 @@ Memory rotation policy
 - OpenRouter first for widest model access.
 - Tailwind + CSS variables for fast iteration and consistent theming.
 - No initial system prompt to avoid biasing outputs.
+- No encryption-at-rest in v1; secrets stored plaintext in localStorage for simplicity.
+- No persisted-store versioning/migrations until post-v1.
 
 ## Ideas / Backlog
 
 - Providers: OpenAI (next), Mistral; Anthropic likely needs proxy.
 - Multi-model fan-out: parallel runs, per-model abort, side-by-side compare.
+- Sanitize rendered markdown (rehype-sanitize) to reduce XSS risk.
 - Export/import conversations (JSON); model presets.
 - Developer mode: raw SSE/debug panel; timing/latency stats.
 - Token estimates & cost badges; controlled concurrency.

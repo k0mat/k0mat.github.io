@@ -4,7 +4,7 @@ import type { Provider } from '../providers/adapters';
 import { useModelsStore } from './modelsStore';
 
 export type Role = 'user' | 'assistant' | 'system';
-export type ChatMessage = { id: string; role: Role; content: string };
+export type ChatMessage = { id: string; role: Role; content: string; createdAt: number; modelUsed?: string };
 
 export type ChatTab = {
   id: string;
