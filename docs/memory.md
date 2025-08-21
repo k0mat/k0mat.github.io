@@ -17,16 +17,16 @@ Memory rotation policy
 
 ## Recently Shipped (last 5)
 
-- Models settings (OpenRouter)
-  - Favorites list + default model; App uses default on provider switch and when unset during send
+- Model favorites dropdown
+  - Favorites picker next to model input; selecting a favorite updates the session model
+- Echo default model fix
+  - Per-provider defaults applied on new tabs and provider switch; removed auto-correct override that reset Echo models
+- Models settings (multi-provider)
+  - Models section supports multiple providers (OpenRouter + Echo); favorites + default per provider
 - Chat tabs system (MVP)
   - Add/close/switch tabs; persisted via Zustand; keyboard and mouse friendly; tests still green
 - Provider/model controls per tab
   - Moved provider and model input from header to per-session controls; header simplified
-- Settings button UX refresh
-  - Header button switched to gear icon; amber warning state preserved when keys missing; tests green (3/3)
-- UI polish (header and initial chat)
-  - Removed top-bar “Show reasoning”; neutral initial chat; improved Settings close UX (X, Escape)
 
 ## Decisions (current)
 
