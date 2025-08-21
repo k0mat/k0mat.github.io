@@ -15,6 +15,7 @@ interface SecretsState {
   // runtime only
   isUnlocked: boolean;
   passphrase?: string; // not persisted
+  hydrated: boolean; // becomes true after persist rehydration
 
   // derived
   hasEncryptedData: boolean;
@@ -39,6 +40,7 @@ export const useSecretsStore = create<SecretsState>()(
       encryptedBlob: null,
       isUnlocked: false,
       passphrase: undefined,
+      hydrated: false,
       get hasEncryptedData() {
         return get().encryptedBlob != null;
       },
@@ -96,11 +98,15 @@ export const useSecretsStore = create<SecretsState>()(
           }
           return {
             secrets,
-            encryptedBlob: v1.encryptedBlob ?? null,
+            encryptedBlob: (v1 as any).encryptedBlob ?? null,
             isUnlocked: false,
           } as Partial<SecretsState> as any;
         }
         return persisted as any;
+      },
+      onRehydrateStorage: () => (state, error) => {
+        // Mark hydrated even if an error occurred, to allow UI to show correct state
+        state?.set?.({ hydrated: true } as any);
       },
     }
   )

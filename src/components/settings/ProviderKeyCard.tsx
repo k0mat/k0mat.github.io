@@ -15,16 +15,30 @@ export default function ProviderKeyCard({
   help?: string;
 }) {
   const { getKey, setKey, clearKey, hasEncryptedData, isUnlocked } = useSecretsStore();
+  const secrets = useSecretsStore(s => s.secrets);
   const [value, setValue] = React.useState<string>(getKey(providerId) ?? '');
   const [validating, setValidating] = React.useState(false);
   const [validationMsg, setValidationMsg] = React.useState<string | null>(null);
   const [validationOk, setValidationOk] = React.useState<boolean | null>(null);
 
+  // Update input when relevant store slices change (including rehydration)
   React.useEffect(() => {
     setValue(getKey(providerId) ?? '');
     setValidationMsg(null);
     setValidationOk(null);
-  }, [getKey, providerId, isUnlocked, hasEncryptedData]);
+  }, [providerId, getKey, isUnlocked, hasEncryptedData, secrets]);
+
+  // Also respond explicitly to persist hydration finish (for safety)
+  React.useEffect(() => {
+    const persistApi: any = (useSecretsStore as any).persist;
+    const onFinish = persistApi?.onFinishHydration?.(() => {
+      setValue(getKey(providerId) ?? '');
+    });
+    if (persistApi?.hasHydrated?.()) {
+      setValue(getKey(providerId) ?? '');
+    }
+    return () => { if (typeof onFinish === 'function') onFinish(); };
+  }, [providerId, getKey]);
 
   const saved = Boolean(getKey(providerId));
   const status = saved ? 'Saved' : 'Not saved';
