@@ -10,39 +10,28 @@ Memory rotation policy
 
 ## Active Work (current)
 
-1) Chat tabs system
-- Per-conversation tabs: add, close, rename; persist in local storage.
-- Active tab manages its own message history, provider, model, and params.
-- Keyboard: Ctrl/Cmd+T new tab, Ctrl/Cmd+W close, Ctrl/Cmd+Tab switch (optional).
-- Success: multiple chats side-by-side via tabs; persistence across reloads.
-
-2) Move provider/model selection into tab
-- Remove header provider/model controls; add per-tab “Session settings” (provider, model, temperature, max tokens).
-- Header keeps only global controls (theme, settings).
-- Success: per-tab model context; header simplified.
-
-3) Remove Echo demo provider
+1) Remove Echo demo provider
 - Remove echo from providers list; update tests to mock OpenRouter adapter for streaming tests.
 - Provide fallback copy to guide users to enter a key in Settings if none present.
 - Success: no Echo code path; tests green with new mocks.
 
-4) Settings: Models section per provider
+2) Settings: Models section per provider
 - New section to manage visible models per provider and set defaults.
 - For OpenRouter: allow listing favorite model IDs and picking a default.
 - Success: per-provider model list stored locally and used by tab selector.
 
 ## Recently Shipped (last 5)
 
-- Settings accessibility & Secrets feedback
-  - Focus trap and initial focus; restore focus on close; X and Escape to close; toasts + confirm dialogs for encryption actions
-- Key validation (OpenRouter)
-  - Validate button in Secrets; GET /api/v1/models; success/error surfaced; toasts added
-- UI polish (header and initial chat)
-  - Removed top-bar “Show reasoning”; neutral initial chat; improved Settings close UX (X, Escape)
-- Settings redesign
-  - Multi-section panel (Secrets + Chat Prefs); slide-over with sidebar; Escape/backdrop close
+- Chat tabs system (MVP)
+  - Add/close/switch tabs; persisted via Zustand; keyboard and mouse friendly; tests still green
+- Provider/model controls per tab
+  - Moved provider and model input from header to per-session controls; header simplified
 - Settings button UX refresh
   - Header button switched to gear icon; amber warning state preserved when keys missing; tests green (3/3)
+- UI polish (header and initial chat)
+  - Removed top-bar “Show reasoning”; neutral initial chat; improved Settings close UX (X, Escape)
+- Key validation (OpenRouter)
+  - Validate button in Secrets; GET /api/v1/models; success/error surfaced; toasts added
 
 ## Decisions (current)
 
