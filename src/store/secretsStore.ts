@@ -15,7 +15,6 @@ interface SecretsState {
   // runtime only
   isUnlocked: boolean;
   passphrase?: string; // not persisted
-  hydrated: boolean; // becomes true after persist rehydration
 
   // derived
   hasEncryptedData: boolean;
@@ -40,7 +39,6 @@ export const useSecretsStore = create<SecretsState>()(
       encryptedBlob: null,
       isUnlocked: false,
       passphrase: undefined,
-      hydrated: false,
       get hasEncryptedData() {
         return get().encryptedBlob != null;
       },
@@ -67,7 +65,6 @@ export const useSecretsStore = create<SecretsState>()(
         set({ secrets: data.secrets ?? {}, isUnlocked: true, passphrase });
       },
       changePassphrase: async (oldPass: string, newPass: string) => {
-        // Verify old pass if blob exists
         const blob = get().encryptedBlob;
         if (blob) {
           await decryptString(blob, oldPass); // throws on wrong pass
@@ -103,10 +100,6 @@ export const useSecretsStore = create<SecretsState>()(
           } as Partial<SecretsState> as any;
         }
         return persisted as any;
-      },
-      onRehydrateStorage: () => (state, error) => {
-        // Mark hydrated even if an error occurred, to allow UI to show correct state
-        state?.set?.({ hydrated: true } as any);
       },
     }
   )

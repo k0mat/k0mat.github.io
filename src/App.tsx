@@ -19,7 +19,9 @@ const providers: Provider[] = [geminiProvider, openRouterProvider];
 
 export default function App() {
   const { theme, setTheme, showReasoning } = useAppStore();
-  const { getKey } = useSecretsStore();
+  // Subscribe to secrets values to re-render after hydration
+  const openrouterKey = useSecretsStore(s => s.secrets['openrouter'] ?? null) ?? undefined;
+  const geminiKey = useSecretsStore(s => s.secrets['gemini'] ?? null) ?? undefined;
   const { tabs, activeId, ensureTab, setSession, pushMessage, appendToMessage, createTab } = useChatStore();
   const { getDefaultFor } = useModelsStore();
   const activeTab = tabs.find(t => t.id === activeId) || null;
@@ -42,9 +44,6 @@ export default function App() {
   }, [activeTab?.providerId]);
 
   const model = activeTab?.model ?? (provider.id === 'openrouter' ? 'openrouter/auto' : 'gemini-1.5-flash');
-
-  const openrouterKey = getKey('openrouter') ?? undefined;
-  const geminiKey = getKey('gemini') ?? undefined;
 
   async function onSend() {
     if (!input.trim() || isStreaming) return;
