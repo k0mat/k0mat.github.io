@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { MessageSquare, SquarePen, StopCircle, Sun, Moon, KeyRound } from 'lucide-react';
+import { MessageSquare, SquarePen, StopCircle, Sun, Moon, Settings as SettingsIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -113,7 +113,7 @@ export default function App() {
             onClick={() => setShowSettings(true)}
             aria-label="Settings"
           >
-            <KeyRound className="h-4 w-4" />
+            <SettingsIcon className="h-4 w-4" />
           </button>
           <button
             aria-label="toggle theme"
