@@ -27,8 +27,18 @@ function formatTime(ts: number) {
   }
 }
 
+function safeScrollToBottom(el: HTMLElement, behavior: ScrollBehavior) {
+  const top = el.scrollHeight;
+  const canScrollTo = typeof (el as any).scrollTo === 'function';
+  if (canScrollTo) {
+    (el as any).scrollTo({ top, behavior });
+  } else {
+    el.scrollTop = top;
+  }
+}
+
 export default function App() {
-  const { theme, setTheme, showReasoning } = useAppStore();
+  const { theme, setTheme, showReasoning, autoScrollEnabled } = useAppStore();
   // Subscribe to secrets values to re-render after hydration
   const openrouterKey = useSecretsStore(s => s.secrets['openrouter'] ?? null) ?? undefined;
   const geminiKey = useSecretsStore(s => s.secrets['gemini'] ?? null) ?? undefined;
@@ -49,23 +59,42 @@ export default function App() {
 
   React.useEffect(() => { ensureTab(); }, [ensureTab]);
 
-  // Auto-scroll to bottom when messages update
-  React.useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    // smooth scroll only when already near bottom
-    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-    if (nearBottom) {
-      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-    }
-  }, [activeTab?.messages?.length]);
-
   const provider = useMemo(() => {
     const pid = activeTab?.providerId ?? 'gemini';
     return providers.find(p => p.id === pid)!;
   }, [activeTab?.providerId]);
 
   const model = activeTab?.model ?? (provider.id === 'openrouter' ? 'openrouter/auto' : 'gemini-1.5-flash');
+
+  // Anchor to detect streaming growth of the last message
+  const autoScrollAnchor = useMemo(() => {
+    const last = activeTab?.messages?.[activeTab.messages.length - 1];
+    if (!last) return '';
+    return `${last.id}:${last.content?.length ?? 0}`;
+  }, [activeTab?.messages]);
+
+  function scrollToBottomImmediate() {
+    const el = scrollRef.current;
+    if (!el) return;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Smooth for short distances, instant for long jumps
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const behavior: ScrollBehavior = prefersReduced ? 'auto' : (distance < 800 ? 'smooth' : 'auto');
+    safeScrollToBottom(el, behavior);
+  }
+
+  // Auto-scroll to bottom when messages update or last message grows
+  React.useEffect(() => {
+    if (!autoScrollEnabled) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const delta = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const nearBottom = delta < 120;
+    if (nearBottom) {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      safeScrollToBottom(el, prefersReduced ? 'auto' : 'smooth');
+    }
+  }, [autoScrollEnabled, autoScrollAnchor]);
 
   async function onSend() {
     if (!input.trim() || isStreaming) return;
@@ -88,6 +117,10 @@ export default function App() {
     const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: input.trim(), createdAt: Date.now() };
     pushMessage(tabId, userMsg);
     setInput('');
+
+    if (autoScrollEnabled) {
+      scrollToBottomImmediate();
+    }
 
     const assistantId = crypto.randomUUID();
     const usedModel = tabModel ?? (curProvider.id === 'openrouter' ? (getDefaultFor('openrouter') ?? 'openrouter/auto') : (getDefaultFor('gemini') ?? 'gemini-1.5-flash'));

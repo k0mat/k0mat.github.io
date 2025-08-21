@@ -8,6 +8,8 @@ interface AppState {
   setTheme: (t: Theme) => void;
   showReasoning: boolean;
   setShowReasoning: (v: boolean) => void;
+  autoScrollEnabled: boolean;
+  setAutoScrollEnabled: (v: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -17,10 +19,12 @@ export const useAppStore = create<AppState>()(
       setTheme: (t) => set({ theme: t }),
       showReasoning: true,
       setShowReasoning: (v) => set({ showReasoning: v }),
+      autoScrollEnabled: true,
+      setAutoScrollEnabled: (v) => set({ autoScrollEnabled: v }),
     }),
     {
       name: 'io-ai:app',
-      partialize: (s) => ({ theme: s.theme, showReasoning: s.showReasoning }),
+      partialize: (s) => ({ theme: s.theme, showReasoning: s.showReasoning, autoScrollEnabled: s.autoScrollEnabled }),
     }
   )
 );
