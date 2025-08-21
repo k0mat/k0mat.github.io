@@ -32,7 +32,7 @@ export default function App() {
   // Subscribe to secrets values to re-render after hydration
   const openrouterKey = useSecretsStore(s => s.secrets['openrouter'] ?? null) ?? undefined;
   const geminiKey = useSecretsStore(s => s.secrets['gemini'] ?? null) ?? undefined;
-  const { tabs, activeId, ensureTab, setSession, pushMessage, appendToMessage, createTab, renameTab } = useChatStore();
+  const { tabs, activeId, ensureTab, setSession, pushMessage, appendToMessage, createTab } = useChatStore();
   const { getDefaultFor } = useModelsStore();
   const activeTab = tabs.find(t => t.id === activeId) || null;
   const [input, setInput] = useState('');
@@ -183,16 +183,25 @@ export default function App() {
           {!activeTab ? (
             <div className="text-sm text-zinc-500">Preparing your first chat…</div>
           ) : (
-            activeTab.messages.map(m => (
+            activeTab.messages.map((m, idx) => (
               <div key={m.id} className={m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}>
                 <div className={(m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100') + ' rounded-lg px-3 py-2 whitespace-pre-wrap'}>
                   {m.role === 'assistant' ? (
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm as unknown as any]}
-                      rehypePlugins={[rehypeHighlight as unknown as any]}
-                    >
-                      {m.content}
-                    </ReactMarkdown>
+                    (m.content?.trim()?.length ?? 0) === 0 && isStreaming && idx === (activeTab.messages.length - 1)
+                      ? (
+                        <span className="typing text-zinc-500 dark:text-zinc-400" aria-label="Assistant is typing">
+                          <span className="dot"/>
+                          <span className="dot"/>
+                          <span className="dot"/>
+                        </span>
+                      ) : (
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm as unknown as any]}
+                          rehypePlugins={[rehypeHighlight as unknown as any]}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
+                      )
                   ) : (
                     m.content
                   )}
@@ -201,9 +210,9 @@ export default function App() {
                   {m.role === 'assistant' && m.modelUsed && (
                     <span className="badge">{m.modelUsed}</span>
                   )}
-                  {typeof m.createdAt === 'number' && !Number.isNaN(m.createdAt) && (
-                    <span title={new Date(m.createdAt).toLocaleString()}>{formatTime(m.createdAt)}</span>
-                  )}
+                  {(() => { const ts = (m as any).createdAt; return (typeof ts === 'number' && !Number.isNaN(ts)) ? (
+                    <span title={new Date(ts).toLocaleString()}>{formatTime(ts)}</span>
+                  ) : null; })()}
                 </div>
               </div>
             ))
