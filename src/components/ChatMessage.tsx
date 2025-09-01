@@ -5,6 +5,7 @@ import rehypeHighlight from 'rehype-highlight';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import type { Schema } from 'hast-util-sanitize';
 import type { ChatMessage } from '../store/chatStore';
+import { MoreHorizontal } from 'lucide-react';
 
 // Build a sanitize schema that preserves code/pre classes for syntax highlighting
 const mdSanitizeSchema: Schema = {
@@ -44,16 +45,17 @@ interface ChatMessageProps {
   collapseAgeMessages: number;
   onToggleExpanded: (id: string, v?: boolean) => void;
   isExpanded: boolean;
+  newerCount: number;
 }
 
-export default function ChatMessageComponent({ message: m, isStreaming, isLast, autoCollapseEnabled, collapseMinLength, collapseAgeMessages, onToggleExpanded, isExpanded }: ChatMessageProps) {
+export default function ChatMessageComponent({ message: m, isStreaming, isLast, autoCollapseEnabled, collapseMinLength, collapseAgeMessages, onToggleExpanded, isExpanded, newerCount }: ChatMessageProps) {
   const shouldCollapse = (m: ChatMessage, isLast: boolean) => {
     if (!autoCollapseEnabled) return false;
     if (m.role !== 'assistant') return false;
     // Don't collapse the actively streaming last assistant message
     if (isLast && isStreaming) return false;
     const lengthOk = (m.content?.length ?? 0) >= collapseMinLength;
-    const ageOk = true; // a message can only be collapsed if there are newer messages, which is always true if it is not the last one
+    const ageOk = newerCount >= collapseAgeMessages;
     return lengthOk && ageOk;
   };
 
@@ -78,17 +80,22 @@ export default function ChatMessageComponent({ message: m, isStreaming, isLast, 
               </span>
             ) : (
               <>
-                <ReactMarkdown
-                  className="markdown"
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[[rehypeSanitize, mdSanitizeSchema], rehypeHighlight as any]}
-                  components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
-                >
-                  {contentToRender}
-                </ReactMarkdown>
+                <div className={`markdown ${collapsed ? 'collapsed' : ''}`}>
+                  <ReactMarkdown
+                    className="markdown"
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[[rehypeSanitize, mdSanitizeSchema], rehypeHighlight as any]}
+                    components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
+                  >
+                    {contentToRender}
+                  </ReactMarkdown>
+                </div>
                 {collapsedByRule && (
                   <div className="mt-2 flex items-center gap-2">
-                    <button className="btn btn-outline text-xs" onClick={() => onToggleExpanded(m.id!, true)} title="Expand message">Expand</button>
+                    <button className="btn btn-outline text-xs" onClick={() => onToggleExpanded(m.id!, true)} title="Expand message">
+                      <MoreHorizontal className="h-4 w-4" />
+                      Expand
+                    </button>
                     <span className="text-[11px] text-zinc-500">Auto-collapsed: old and long</span>
                   </div>
                 )}

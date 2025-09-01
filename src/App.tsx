@@ -214,25 +214,39 @@ export default function App() {
             />
           )}
           <span className="badge">{provider.name}</span>
+          <div className="flex-grow"></div>
+          <button className="btn btn-outline text-xs" onClick={() => setExpanded({})}>Collapse all</button>
+          <button className="btn btn-outline text-xs" onClick={() => {
+            if (!activeTab) return;
+            const newExpanded: Record<string, boolean> = {};
+            for (const message of activeTab.messages) {
+              newExpanded[message.id!] = true;
+            }
+            setExpanded(newExpanded);
+          }}>Expand all</button>
         </div>
 
         <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto card flex flex-col gap-4">
           {!activeTab ? (
             <div className="text-sm text-zinc-500">Preparing your first chat…</div>
           ) : (
-            activeTab.messages.map((m, idx) => (
-              <ChatMessageComponent
-                key={m.id}
-                message={m}
-                isStreaming={isStreaming}
-                isLast={idx === activeTab.messages.length - 1}
-                autoCollapseEnabled={autoCollapseEnabled}
-                collapseMinLength={collapseMinLength}
-                collapseAgeMessages={collapseAgeMessages}
-                onToggleExpanded={toggleExpanded}
-                isExpanded={!!expanded[m.id!]}
-              />
-            ))
+            activeTab.messages.map((m, idx) => {
+              const newerCount = activeTab.messages.length - 1 - idx;
+              return (
+                <ChatMessageComponent
+                  key={m.id}
+                  message={m}
+                  isStreaming={isStreaming}
+                  isLast={idx === activeTab.messages.length - 1}
+                  autoCollapseEnabled={autoCollapseEnabled}
+                  collapseMinLength={collapseMinLength}
+                  collapseAgeMessages={collapseAgeMessages}
+                  onToggleExpanded={toggleExpanded}
+                  isExpanded={!!expanded[m.id!]}
+                  newerCount={newerCount}
+                />
+              );
+            })
           )}
         </div>
 

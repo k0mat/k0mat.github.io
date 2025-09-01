@@ -88,4 +88,25 @@ body { background: var(--bg); color: var(--text); }
   .markdown blockquote { border-left: 3px solid var(--border); padding: 0.18rem 0.6rem; margin: 0.5rem 0; color: var(--muted); background: color-mix(in oklab, var(--surface) 90%, transparent); border-radius: 0.25rem; }
   .markdown table { border-collapse: collapse; margin: 0.35rem 0; width: 100%; }
   .markdown th, .markdown td { border: 1px solid var(--border); padding: 0.3rem 0.4rem; text-align: left; }
+
+  .markdown.collapsed {
+    max-height: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .markdown.collapsed::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, var(--surface));
+  }
+
+  .markdown {
+    transition: max-height 0.3s ease-in-out;
+  }
+}
 }
