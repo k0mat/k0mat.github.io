@@ -5,11 +5,23 @@ function toOpenAIChat(messages: ChatMessage[]) {
   return messages.map(m => ({ role: m.role, content: m.content }));
 }
 
+type OpenRouterResponse = {
+  choices: {
+    delta?: {
+      content?: string;
+      reasoning?: string;
+    };
+    message?: {
+      content?: string;
+    };
+  }[];
+};
+
 function extractTextFromData(data: unknown, includeReasoning: boolean): string {
   try {
-    const obj = data as any;
+    const obj = data as OpenRouterResponse;
     if (!obj) return '';
-    const choices = obj.choices as any[] | undefined;
+    const choices = obj.choices;
     if (!choices || choices.length === 0) return '';
     const c0 = choices[0];
     const delta = c0?.delta ?? {};
@@ -116,3 +128,4 @@ export const openRouterProvider: Provider = {
   meta: { browserSafe: true, supportsStreaming: true },
   sendMessageStream: streamOpenRouter,
 };
+

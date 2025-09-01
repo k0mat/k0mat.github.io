@@ -12,7 +12,7 @@ export async function validateOpenRouterKey(apiKey: string): Promise<ValidateRes
       'Accept': 'application/json',
     },
   }).catch((e) => {
-    if ((e as any)?.name === 'AbortError') throw e;
+    if (e instanceof DOMException && e.name === 'AbortError') throw e;
     throw new CORSBlockedError('Network/CORS error contacting OpenRouter');
   });
 

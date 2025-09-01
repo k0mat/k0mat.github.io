@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useModelsStore } from './modelsStore';
-import { useChatStore } from './chatStore';
+import { useChatStore, ChatState } from './chatStore';
 
 // Helper to reset Zustand stores between tests
 function resetStores() {
   localStorage.clear();
   useModelsStore.setState({ byProvider: {} });
-  useChatStore.setState({ tabs: [], activeId: null } as any);
+  useChatStore.setState({ tabs: [], activeId: null } as ChatState);
 }
 
 describe('chatStore defaults', () => {

@@ -3,6 +3,14 @@ import { useSecretsStore } from '../../store/secretsStore';
 import { validateOpenRouterKey } from '../../providers/validate';
 import { toast } from 'sonner';
 
+// Define a type for the store with the persist middleware
+type StoreWithPersist = {
+  persist: {
+    onFinishHydration: (fn: (state: any) => void) => () => void;
+    hasHydrated: () => boolean;
+  };
+};
+
 export default function ProviderKeyCard({
   providerId,
   title,
@@ -30,7 +38,7 @@ export default function ProviderKeyCard({
 
   // Also respond explicitly to persist hydration finish (for safety)
   React.useEffect(() => {
-    const persistApi: any = (useSecretsStore as any).persist;
+    const persistApi = (useSecretsStore as unknown as StoreWithPersist).persist;
     const onFinish = persistApi?.onFinishHydration?.(() => {
       setValue(getKey(providerId) ?? '');
     });

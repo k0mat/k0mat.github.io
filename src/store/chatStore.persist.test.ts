@@ -1,10 +1,11 @@
-// filepath: d:\Dev\projects\io-ai\src\store\chatStore.persist.test.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { StoreApi } from 'zustand';
+import type { ChatState, ChatTab } from './chatStore';
 
-async function freshChatStore() {
+async function freshChatStore(): Promise<StoreApi<ChatState>> {
   vi.resetModules();
-  const mod: any = await import('./chatStore');
-  return mod.useChatStore as any;
+  const mod = await import('./chatStore');
+  return mod.useChatStore;
 }
 
 describe('chatStore title persistence', () => {
@@ -14,7 +15,7 @@ describe('chatStore title persistence', () => {
   });
 
   it('renamed tab title persists across reload', async () => {
-    const useChatStore: any = await freshChatStore();
+    const useChatStore = await freshChatStore();
     // Ensure a tab exists
     const id = useChatStore.getState().createTab({ providerId: 'gemini' });
     useChatStore.getState().renameTab(id, 'My persistent title');
@@ -25,9 +26,9 @@ describe('chatStore title persistence', () => {
     expect(raw!).toMatch(/My persistent title/);
 
     // Reload store and rehydrate
-    const useChatStore2: any = await freshChatStore();
-    await useChatStore2.persist.rehydrate();
-    const titles = useChatStore2.getState().tabs.map((t: any) => t.title);
+    const useChatStore2 = await freshChatStore();
+    await (useChatStore2.persist as any).rehydrate();
+    const titles = useChatStore2.getState().tabs.map((t: ChatTab) => t.title);
     expect(titles).toContain('My persistent title');
   });
 });

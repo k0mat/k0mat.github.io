@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { StoreApi } from 'zustand';
+import type { SecretsState } from './secretsStore';
 
-function freshStore() {
+function freshStore(): Promise<StoreApi<SecretsState>> {
   vi.resetModules();
-  return import('./secretsStore').then(m => m.useSecretsStore as any);
+  return import('./secretsStore').then(m => m.useSecretsStore);
 }
 
 describe('secretsStore persistence', () => {
@@ -12,21 +14,21 @@ describe('secretsStore persistence', () => {
   });
 
   it('persists plaintext secrets across reload', async () => {
-    const useSecretsStore: any = await freshStore();
+    const useSecretsStore = await freshStore();
     useSecretsStore.getState().setKey('openrouter', 'sk-test');
 
     const data = localStorage.getItem('io-ai:secrets');
     expect(data).toBeTruthy();
 
-    const useSecretsStore2: any = await freshStore();
+    const useSecretsStore2 = await freshStore();
     // Explicitly rehydrate
-    await useSecretsStore2.persist.rehydrate();
+    await (useSecretsStore2.persist as any).rehydrate();
 
     expect(useSecretsStore2.getState().getKey('openrouter')).toBe('sk-test');
   });
 
   it('clearAll removes secrets and clears storage keys', async () => {
-    const useSecretsStore: any = await freshStore();
+    const useSecretsStore = await freshStore();
     useSecretsStore.getState().setKey('gemini', 'AIza-test');
     let raw = localStorage.getItem('io-ai:secrets');
     expect(raw).toBeTruthy();
@@ -35,8 +37,8 @@ describe('secretsStore persistence', () => {
     expect(useSecretsStore.getState().getKey('gemini')).toBeNull();
 
     // After clear, storage should still exist but contain empty secrets after next persist write
-    const useSecretsStore2: any = await freshStore();
-    await useSecretsStore2.persist.rehydrate();
+    const useSecretsStore2 = await freshStore();
+    await (useSecretsStore2.persist as any).rehydrate();
     expect(useSecretsStore2.getState().getKey('gemini')).toBeNull();
   });
 });

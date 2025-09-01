@@ -13,12 +13,19 @@ export type EncryptedPayload = {
   ct: string; // base64
 };
 
+// Define a type for globalThis that includes Buffer
+type GlobalThisWithBuffer = typeof globalThis & {
+  Buffer: {
+    from(bytes: ArrayBuffer): { toString(encoding: 'base64'): string; };
+    from(b64: string, encoding: 'base64'): Uint8Array;
+  };
+};
+
 function toBase64(bytes: ArrayBuffer): string {
   const bin = String.fromCharCode(...new Uint8Array(bytes));
   // btoa ok in browser; Node: use Buffer
   if (typeof btoa === 'function') return btoa(bin);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (globalThis as any).Buffer.from(bytes).toString('base64');
+  return (globalThis as GlobalThisWithBuffer).Buffer.from(bytes).toString('base64');
 }
 
 function fromBase64(b64: string): Uint8Array {
@@ -26,8 +33,7 @@ function fromBase64(b64: string): Uint8Array {
     const bin = atob(b64);
     return Uint8Array.from(bin, c => c.charCodeAt(0));
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new (globalThis as any).Buffer.from(b64, 'base64');
+  return (globalThis as GlobalThisWithBuffer).Buffer.from(b64, 'base64');
 }
 
 async function deriveKey(passphrase: string, salt: Uint8Array, iter = 150_000) {
