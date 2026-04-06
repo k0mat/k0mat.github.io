@@ -1,0 +1,70 @@
+{
+  "type": "object",
+  "title": "LLM Conversation Output Schema",
+  "description": "Schema describing an LLM output that contains an ordered list of iterations (each with answer, review, critique, and plan_to_improve) and a final_answer object.",
+  "properties": {
+    "iterations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "description": "An ordered array where each item represents one iterative output from the model (drafts/improvements).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "iteration": {
+            "type": "integer",
+            "description": "1-based iteration number."
+          },
+          "answer": {
+            "type": "string",
+            "description": "The model's answer for this iteration."
+          },
+          "review": {
+            "type": "string",
+            "description": "A short review of the iteration's answer (what is good or correct)."
+          },
+          "critique": {
+            "type": "string",
+            "description": "A short critique identifying faults, omissions, or risks in the answer."
+          },
+          "plan_to_improve": {
+            "type": "string",
+            "description": "A concise plan or next steps the model proposes to improve the answer in a subsequent iteration."
+          },
+          "final": {
+            "type": "boolean",
+            "description": "Indicates if this iteration is considered the final answer by the model."
+          }
+        },
+        "required": ["iteration", "answer", "review", "critique", "plan_to_improve"]
+      }
+    },
+    "final_answer": {
+      "type": "object",
+      "description": "The final consolidated answer after iterative improvement, plus metadata.",
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "type": "string",
+          "description": "The final recommended answer."
+        },
+        "summary": {
+          "type": "string",
+          "description": "A brief summary of the final answer."
+        },
+        "confidence": {
+          "type": "string",
+          "description": "An optional human-readable confidence level (e.g., 'high', 'medium', 'low')."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional implementation notes, caveats, or performance considerations."
+        }
+      },
+      "required": ["answer", "summary"]
+    }
+  },
+  "required": ["iterations", "final_answer"],
+  "additionalProperties": false
+}

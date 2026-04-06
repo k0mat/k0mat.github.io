@@ -6,6 +6,7 @@ import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import type { Schema } from 'hast-util-sanitize';
 import type { ChatMessage } from '../store/chatStore';
 import { MoreHorizontal } from 'lucide-react';
+import MessageActions from './chat/MessageActions';
 
 // Build a sanitize schema that preserves code/pre classes for syntax highlighting
 const mdSanitizeSchema: Schema = {
@@ -46,9 +47,10 @@ interface ChatMessageProps {
   onToggleExpanded: (id: string, v?: boolean) => void;
   isExpanded: boolean;
   newerCount: number;
+  onRegenerate?: () => void;
 }
 
-export default function ChatMessageComponent({ message: m, isStreaming, isLast, autoCollapseEnabled, collapseMinLength, collapseAgeMessages, onToggleExpanded, isExpanded, newerCount }: ChatMessageProps) {
+export default function ChatMessageComponent({ message: m, isStreaming, isLast, autoCollapseEnabled, collapseMinLength, collapseAgeMessages, onToggleExpanded, isExpanded, newerCount, onRegenerate }: ChatMessageProps) {
   const shouldCollapse = (m: ChatMessage, isLast: boolean) => {
     if (!autoCollapseEnabled) return false;
     if (m.role !== 'assistant') return false;
@@ -64,7 +66,7 @@ export default function ChatMessageComponent({ message: m, isStreaming, isLast, 
   const contentToRender = collapsed ? previewOf(m.content) : m.content;
 
   return (
-    <div key={m.id} className={m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}>
+    <div key={m.id} className={`group ${m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}`}>
       <div className={
         (m.role === 'user'
           ? 'bg-blue-600/90 text-white rounded-lg px-3 py-2 whitespace-pre-wrap'
@@ -121,9 +123,15 @@ export default function ChatMessageComponent({ message: m, isStreaming, isLast, 
         {m.role === 'assistant' && m.modelUsed && (
           <span className="badge">{m.modelUsed}</span>
         )}
-        {(() => { const ts = m.createdAt; return (typeof ts === 'number' && !Number.isNaN(ts)) ? (
+        {(() => { const ts = m.createdAt; return (!Number.isNaN(ts)) ? (
           <span title={new Date(ts).toLocaleString()}>{formatTime(ts)}</span>
         ) : null; })()}
+        <MessageActions
+          content={m.content}
+          role={m.role}
+          onRegenerate={onRegenerate}
+          isStreaming={isStreaming}
+        />
       </div>
     </div>
   );

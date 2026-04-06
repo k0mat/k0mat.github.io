@@ -109,4 +109,73 @@ body { background: var(--bg); color: var(--text); }
     transition: max-height 0.3s ease-in-out;
   }
 }
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .input, .select, .textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  /* Stack controls vertically on mobile */
+  .flex.items-center.gap-2.flex-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .flex.items-center.gap-2.flex-wrap > * {
+    width: 100%;
+  }
+
+  /* Make provider select and model input full width */
+  .w-48, .w-56 {
+    width: 100%;
+  }
+
+  /* Adjust padding for mobile */
+  main {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Settings panel full width on mobile */
+  .absolute.inset-y-0.right-0 {
+    width: 100%;
+  }
+}
+
+/* Smooth transitions for theme changes */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Focus visible styles for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: #000;
+    --text: #000;
+  }
+
+  .dark {
+    --border: #fff;
+    --text: #fff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

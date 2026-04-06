@@ -1,0 +1,132 @@
+{
+  "type": "object",
+  "properties": {
+    "universe_details": {
+      "type": "string",
+      "description": "A brief (one-sentence maximum), factual description of the specified universe or setting. This entry should only contain well-known, canon information, setting the stage (e.g., 'A dystopian sci-fi future where artificial intelligence governs society' or 'A magical world of talking animals living in a medieval kingdom'). Do not elaborate or speculate beyond established lore."
+    },
+    "scenario_details": {
+      "type": "string",
+      "description": "The refined, editorialized, and polished version of the initial scenario or topic prompt. This version must fix any grammatical errors, typos, and improve the overall clarity and sophistication of the setup, without changing the core plot or emotional feeling of the story."
+    },
+    "main_characters_descriptions": {
+      "type": "array",
+      "description": "A list of all characters who speak in the conversation, each accompanied by a short biographical sketch or defining traits.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the character."
+          },
+          "bio": {
+            "type": "string",
+            "description": "A concise description of the character's core personality, motivations, or defining role in the story/universe. This is crucial for believable dialogue."
+          }
+        },
+        "required": [
+          "name",
+          "bio"
+        ]
+      }
+    },
+    "interaction": {
+      "type": "array",
+      "description": "An array representing the complete, turn-by-turn script, alternating between dialogue, action, and description.",
+      "items": {
+        "oneOf": [
+          {
+            "description": "A turn of dialogue spoken by a character.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "dialogue"
+                ]
+              },
+              "turn": {
+                "type": "integer",
+                "description": "The sequential number of the script entry."
+              },
+              "speaker": {
+                "type": "string",
+                "description": "The name of the character speaking."
+              },
+              "dialogue": {
+                "type": "string",
+                "description": "The line of dialogue spoken by the character."
+              },
+              "emotion": {
+                "type": "string",
+                "description": "The speaker's emotional state (e.g., 'confused', 'excited')."
+              }
+            },
+            "required": [
+              "type",
+              "turn",
+              "speaker",
+              "dialogue"
+            ]
+          },
+          {
+            "description": "A narrative entry describing an immediate action or sound effect.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "action"
+                ]
+              },
+              "turn": {
+                "type": "integer",
+                "description": "The sequential number of the script entry."
+              },
+              "description": {
+                "type": "string",
+                "description": "The description of the action, stage direction, or sound effect."
+              }
+            },
+            "required": [
+              "type",
+              "turn",
+              "description"
+            ]
+          },
+          {
+            "description": "A detailed narrative entry used to describe a place, person, or object, often used for scene-setting or introduction.",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "description"
+                ]
+              },
+              "turn": {
+                "type": "integer",
+                "description": "The sequential number of the script entry."
+              },
+              "description": {
+                "type": "string",
+                "description": "The detailed narrative description of a thing, person, or location."
+              }
+            },
+            "required": [
+              "type",
+              "turn",
+              "description"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "universe_details",
+    "scenario_details",
+    "main_characters_descriptions",
+    "interaction"
+  ]
+}
