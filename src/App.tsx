@@ -64,7 +64,7 @@ export default function App() {
     console.log('Regenerate not yet implemented');
   }, []);
 
-  const showWelcome = !activeTab || activeTab.messages.length === 0;
+  const showWelcome = needsKey;
 
   // Set up keyboard shortcuts
   useKeyboardShortcuts({
@@ -134,6 +134,10 @@ export default function App() {
           <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto card flex flex-col gap-4">
             {!activeTab ? (
               <div className="text-sm text-zinc-500">Preparing your first chat…</div>
+            ) : activeTab.messages.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center text-sm text-zinc-400 dark:text-zinc-500">
+                No messages yet. Say something!
+              </div>
             ) : (
               activeTab.messages.map((m, idx) => {
                 const newerCount = activeTab.messages.length - 1 - idx;
