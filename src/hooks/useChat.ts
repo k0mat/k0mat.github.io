@@ -39,8 +39,8 @@ export function useChat() {
 
     if (!tabId) {
       tabId = createTab();
-      tabProviderId = 'gemini';
-      tabModel = 'gemini-1.5-flash';
+      tabProviderId = 'openrouter';
+      tabModel = 'openrouter/auto';
     }
 
     const curProvider = providers.find(p => p.id === (tabProviderId ?? 'gemini'))!;
