@@ -7,6 +7,7 @@ import type { Schema } from 'hast-util-sanitize';
 import type { ChatMessage } from '../store/chatStore';
 import { MoreHorizontal } from 'lucide-react';
 import MessageActions from './chat/MessageActions';
+import ToolCallMessage from './chat/ToolCallMessage';
 
 // Build a sanitize schema that preserves code/pre classes for syntax highlighting
 const mdSanitizeSchema: Schema = {
@@ -65,60 +66,80 @@ export default function ChatMessageComponent({ message: m, isStreaming, isLast, 
   const collapsed = collapsedByRule && !isExpanded;
   const contentToRender = collapsed ? previewOf(m.content) : m.content;
 
+  // Tool result messages and assistant-with-only-tool-calls get a special compact rendering
+  if (m.role === 'tool') {
+    return (
+      <div key={m.id} className="group self-start w-full max-w-[85%]">
+        <ToolCallMessage message={m} />
+      </div>
+    );
+  }
+
   return (
     <div key={m.id} className={`group ${m.role === 'user' ? 'self-end max-w-[85%]' : 'self-start max-w-[85%]'}`}>
-      <div className={
-        (m.role === 'user'
-          ? 'bg-blue-600/90 text-white rounded-lg px-3 py-2 whitespace-pre-wrap'
-          : 'assistant-bubble whitespace-pre-wrap')
-      }>
-        {m.role === 'assistant' ? (
-          (m.content?.trim()?.length ?? 0) === 0 && isStreaming && isLast
-            ? (
-              <span className="typing text-zinc-500 dark:text-zinc-400" aria-label="Assistant is typing">
-                <span className="dot"/>
-                <span className="dot"/>
-                <span className="dot"/>
-              </span>
-            ) : (
-              <>
-                <div className={`markdown ${collapsed ? 'collapsed' : ''}`}>
-                  <ReactMarkdown
-                    className="markdown"
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[[rehypeSanitize, mdSanitizeSchema], rehypeHighlight as any]}
-                    components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
-                  >
-                    {contentToRender}
-                  </ReactMarkdown>
-                </div>
-                {collapsedByRule && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <button className="btn btn-outline text-xs" onClick={() => onToggleExpanded(m.id!, true)} title="Expand message">
-                      <MoreHorizontal className="h-4 w-4" />
-                      Expand
-                    </button>
-                    <span className="text-[11px] text-zinc-500">Auto-collapsed: old and long</span>
+      {/* Tool-call pills: shown above the bubble when the assistant message triggered tool calls */}
+      {m.role === 'assistant' && m.toolCalls && m.toolCalls.length > 0 && (
+        <div className="mb-1.5">
+          <ToolCallMessage message={m} />
+        </div>
+      )}
+
+      {/* Only render the bubble if there's text content (or it's still streaming) */}
+      {(m.role !== 'assistant' || (m.content?.trim()?.length ?? 0) > 0 || (isStreaming && isLast)) && (
+        <div className={
+          (m.role === 'user'
+            ? 'bg-blue-600/90 text-white rounded-lg px-3 py-2 whitespace-pre-wrap'
+            : 'assistant-bubble whitespace-pre-wrap')
+        }>
+          {m.role === 'assistant' ? (
+            (m.content?.trim()?.length ?? 0) === 0 && isStreaming && isLast
+              ? (
+                <span className="typing text-zinc-500 dark:text-zinc-400" aria-label="Assistant is typing">
+                  <span className="dot"/>
+                  <span className="dot"/>
+                  <span className="dot"/>
+                </span>
+              ) : (
+                <>
+                  <div className={`markdown ${collapsed ? 'collapsed' : ''}`}>
+                    <ReactMarkdown
+                      className="markdown"
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[[rehypeSanitize, mdSanitizeSchema], rehypeHighlight as any]}
+                      components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
+                    >
+                      {contentToRender}
+                    </ReactMarkdown>
                   </div>
-                )}
-                {!collapsed && collapsedByRule && (
-                  <div className="mt-2">
-                    <button className="btn btn-outline text-xs" onClick={() => onToggleExpanded(m.id!, false)} title="Collapse message">Collapse</button>
-                  </div>
-                )}
-              </>
-            )
-        ) : (
-          <ReactMarkdown
-            className="markdown"
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[[rehypeSanitize, mdSanitizeSchema], rehypeHighlight as any]}
-            components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
-          >
-            {m.content}
-          </ReactMarkdown>
-        )}
-      </div>
+                  {collapsedByRule && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <button className="btn btn-outline text-xs" onClick={() => onToggleExpanded(m.id!, true)} title="Expand message">
+                        <MoreHorizontal className="h-4 w-4" />
+                        Expand
+                      </button>
+                      <span className="text-[11px] text-zinc-500">Auto-collapsed: old and long</span>
+                    </div>
+                  )}
+                  {!collapsed && collapsedByRule && (
+                    <div className="mt-2">
+                      <button className="btn btn-outline text-xs" onClick={() => onToggleExpanded(m.id!, false)} title="Collapse message">Collapse</button>
+                    </div>
+                  )}
+                </>
+              )
+          ) : (
+            <ReactMarkdown
+              className="markdown"
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[[rehypeSanitize, mdSanitizeSchema], rehypeHighlight as any]}
+              components={{ a: (props) => <a {...props} target="_blank" rel="noreferrer noopener" /> }}
+            >
+              {m.content}
+            </ReactMarkdown>
+          )}
+        </div>
+      )}
+
       <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
         {m.role === 'assistant' && m.modelUsed && (
           <span className="badge">{m.modelUsed}</span>

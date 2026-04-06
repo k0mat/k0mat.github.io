@@ -1,7 +1,39 @@
 export type ChatMessage = {
   id?: string;
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
+  /** Present when role === 'tool' — links back to the tool_call_id */
+  toolCallId?: string;
+  /** Present when role === 'assistant' and the model wants to call tools */
+  toolCalls?: ToolCall[];
+};
+
+export type ToolParameterSchema = {
+  type: string;
+  description?: string;
+  enum?: string[];
+};
+
+export type ToolDefinition = {
+  /** Unique tool name (namespaced as "<serverName>__<toolName>" when multiple servers) */
+  name: string;
+  description?: string;
+  /** JSON Schema for the tool's arguments */
+  parameters: {
+    type: 'object';
+    properties?: Record<string, ToolParameterSchema>;
+    required?: string[];
+  };
+};
+
+export type ToolCall = {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    /** JSON-encoded arguments string */
+    arguments: string;
+  };
 };
 
 export type SendMessageArgs = {
@@ -12,6 +44,8 @@ export type SendMessageArgs = {
   maxTokens?: number;
   signal?: AbortSignal;
   includeReasoning?: boolean;
+  /** Optional tool definitions to pass to the model */
+  tools?: ToolDefinition[];
 };
 
 export interface ProviderMetadata {

@@ -1,10 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Provider } from '../providers/adapters';
+import type { Provider, ToolCall } from '../providers/adapters';
 import { useModelsStore } from './modelsStore';
 
-export type Role = 'user' | 'assistant' | 'system';
-export type ChatMessage = { id: string; role: Role; content: string; createdAt: number; modelUsed?: string };
+export type Role = 'user' | 'assistant' | 'system' | 'tool';
+export type ChatMessage = {
+  id: string;
+  role: Role;
+  content: string;
+  createdAt: number;
+  modelUsed?: string;
+  /** Tool calls the assistant wants to make (role === 'assistant') */
+  toolCalls?: ToolCall[];
+  /** Links a tool-result message back to the tool_call_id (role === 'tool') */
+  toolCallId?: string;
+  /** Display name of the tool that was called (role === 'tool') */
+  toolName?: string;
+};
 
 export type ChatTab = {
   id: string;
@@ -26,6 +38,8 @@ interface ChatState {
   setSession: (id: string, providerId: Provider['id'], model: string) => void;
   pushMessage: (id: string, msg: ChatMessage) => void;
   appendToMessage: (id: string, messageId: string, chunk: string) => void;
+  /** Patch arbitrary fields on an existing message (e.g. set toolCalls after streaming) */
+  patchMessage: (id: string, messageId: string, patch: Partial<Omit<ChatMessage, 'id'>>) => void;
   ensureTab: () => void;
 }
 
@@ -86,6 +100,11 @@ export const useChatStore = create<ChatState>()(
       appendToMessage: (id, messageId, chunk) => set((s) => ({ tabs: s.tabs.map(t => {
         if (t.id !== id) return t;
         const msgs = (t.messages ?? []).map(m => m.id === messageId ? { ...m, content: (m.content ?? '') + chunk } : m);
+        return { ...t, messages: msgs, updatedAt: now() };
+      }) })),
+      patchMessage: (id, messageId, patch) => set((s) => ({ tabs: s.tabs.map(t => {
+        if (t.id !== id) return t;
+        const msgs = (t.messages ?? []).map(m => m.id === messageId ? { ...m, ...patch } : m);
         return { ...t, messages: msgs, updatedAt: now() };
       }) })),
       ensureTab: () => {

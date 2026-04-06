@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 interface MessageActionsProps {
   content: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'tool';
   onRegenerate?: () => void;
   isStreaming?: boolean;
 }
