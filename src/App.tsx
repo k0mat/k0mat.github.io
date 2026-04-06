@@ -88,7 +88,7 @@ export default function App() {
 
       <ChatTabs />
 
-      {showWelcome && !needsKey ? (
+      {showWelcome ? (
         <WelcomeScreen onOpenSettings={() => setShowSettings(true)} />
       ) : (
         <main className="flex-1 overflow-hidden min-h-0 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col gap-4">
@@ -162,7 +162,7 @@ export default function App() {
             onSend={handleSend}
             onStop={onStop}
             isStreaming={isStreaming}
-            disabled={needsKey || !activeTab}
+            disabled={needsKey}
           />
         </main>
       )}
