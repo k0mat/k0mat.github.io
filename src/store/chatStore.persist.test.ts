@@ -17,7 +17,7 @@ describe('chatStore title persistence', () => {
   it('renamed tab title persists across reload', async () => {
     const useChatStore = await freshChatStore();
     // Ensure a tab exists
-    const id = useChatStore.getState().createTab({ providerId: 'gemini' });
+    const id = useChatStore.getState().createTab({ providerId: 'openrouter' });
     useChatStore.getState().renameTab(id, 'My persistent title');
 
     // Verify raw storage contains the title

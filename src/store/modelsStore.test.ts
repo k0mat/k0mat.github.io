@@ -21,11 +21,11 @@ describe('modelsStore', () => {
   it('setDefault and removeFavorite behave correctly', () => {
     const s = useModelsStore.getState();
     s.addFavorite('openrouter', 'openrouter/auto');
-    s.addFavorite('openrouter', 'google/gemini-flash-1.5');
-    s.setDefault('openrouter', 'google/gemini-flash-1.5');
-    expect(useModelsStore.getState().getDefaultFor('openrouter')).toBe('google/gemini-flash-1.5');
+    s.addFavorite('openrouter', 'anthropic/claude-3.5-sonnet');
+    s.setDefault('openrouter', 'anthropic/claude-3.5-sonnet');
+    expect(useModelsStore.getState().getDefaultFor('openrouter')).toBe('anthropic/claude-3.5-sonnet');
 
-    useModelsStore.getState().removeFavorite('openrouter', 'google/gemini-flash-1.5');
+    useModelsStore.getState().removeFavorite('openrouter', 'anthropic/claude-3.5-sonnet');
     expect(useModelsStore.getState().byProvider.openrouter?.favorites).toEqual(['openrouter/auto']);
     expect(useModelsStore.getState().getDefaultFor('openrouter')).toBe('openrouter/auto');
 

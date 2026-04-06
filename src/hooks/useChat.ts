@@ -4,7 +4,6 @@ import { useSecretsStore } from '../store/secretsStore';
 import { useChatStore } from '../store/chatStore';
 import { useModelsStore } from '../store/modelsStore';
 import { useMcpStore } from '../store/mcpStore';
-import { geminiProvider } from '../providers/gemini';
 import { openRouterProvider } from '../providers/openrouter';
 import { TOOL_CALLS_PREFIX } from '../providers/openrouter';
 import type { Provider, SendMessageArgs, ToolDefinition, ToolCall, ChatMessage as ProviderMessage } from '../providers/adapters';
@@ -12,7 +11,7 @@ import { listTools, callTool, toolResultToText } from '../lib/mcpClient';
 import type { McpToolDefinition } from '../lib/mcpClient';
 import { maybeAutoName } from '../lib/autoTitle';
 
-const providers: Provider[] = [geminiProvider, openRouterProvider];
+const providers: Provider[] = [openRouterProvider];
 
 /** Max agentic turns to prevent infinite loops */
 const MAX_TOOL_LOOP = 5;
@@ -50,7 +49,6 @@ function resolveToolCall(
 export function useChat() {
   const { showReasoning } = useAppStore();
   const openrouterKey = useSecretsStore((s) => s.secrets['openrouter'] ?? null) ?? undefined;
-  const geminiKey = useSecretsStore((s) => s.secrets['gemini'] ?? null) ?? undefined;
   const { tabs, activeId, setSession, pushMessage, appendToMessage, patchMessage, createTab } = useChatStore();
   const { getDefaultFor } = useModelsStore();
   const mcpServers = useMcpStore((s) => s.servers);
@@ -60,17 +58,13 @@ export function useChat() {
   const abortRef = React.useRef<AbortController | null>(null);
 
   const provider = React.useMemo(() => {
-    const pid = activeTab?.providerId ?? 'gemini';
-    return providers.find((p) => p.id === pid)!;
+    const pid = activeTab?.providerId ?? 'openrouter';
+    return providers.find((p) => p.id === pid) ?? openRouterProvider;
   }, [activeTab?.providerId]);
 
-  const model =
-    activeTab?.model ??
-    (provider.id === 'openrouter' ? 'openrouter/auto' : 'gemini-1.5-flash');
+  const model = activeTab?.model ?? 'openrouter/auto';
 
-  const needsKey =
-    (provider.id === 'openrouter' && !openrouterKey) ||
-    (provider.id === 'gemini' && !geminiKey);
+  const needsKey = !openrouterKey;
 
   async function onSend(
     input: string,
@@ -90,12 +84,9 @@ export function useChat() {
       tabModel = 'openrouter/auto';
     }
 
-    const curProvider = providers.find((p) => p.id === (tabProviderId ?? 'gemini'))!;
+    const curProvider = providers.find((p) => p.id === (tabProviderId ?? 'openrouter')) ?? openRouterProvider;
 
-    const missingKey =
-      (curProvider.id === 'openrouter' && !openrouterKey) ||
-      (curProvider.id === 'gemini' && !geminiKey);
-    if (missingKey) return { needsSettings: true };
+    if (!openrouterKey) return { needsSettings: true };
 
     const userMsg = {
       id: crypto.randomUUID(),
@@ -114,12 +105,8 @@ export function useChat() {
     abortRef.current = controller;
     setIsStreaming(true);
 
-    const apiKey = curProvider.id === 'openrouter' ? openrouterKey : geminiKey;
-    const usedModel =
-      tabModel ??
-      (curProvider.id === 'openrouter'
-        ? (getDefaultFor('openrouter') ?? 'openrouter/auto')
-        : (getDefaultFor('gemini') ?? 'gemini-1.5-flash'));
+    const apiKey = openrouterKey;
+    const usedModel = tabModel ?? (getDefaultFor('openrouter') ?? 'openrouter/auto');
 
     const baseMessages = activeTab && activeTab.id === tabId ? activeTab.messages : [];
 

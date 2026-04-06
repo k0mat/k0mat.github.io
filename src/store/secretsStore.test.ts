@@ -29,16 +29,16 @@ describe('secretsStore persistence', () => {
 
   it('clearAll removes secrets and clears storage keys', async () => {
     const useSecretsStore = await freshStore();
-    useSecretsStore.getState().setKey('gemini', 'AIza-test');
+    useSecretsStore.getState().setKey('openrouter', 'sk-test-2');
     let raw = localStorage.getItem('io-ai:secrets');
     expect(raw).toBeTruthy();
 
     useSecretsStore.getState().clearAll();
-    expect(useSecretsStore.getState().getKey('gemini')).toBeNull();
+    expect(useSecretsStore.getState().getKey('openrouter')).toBeNull();
 
     // After clear, storage should still exist but contain empty secrets after next persist write
     const useSecretsStore2 = await freshStore();
     await (useSecretsStore2.persist as any).rehydrate();
-    expect(useSecretsStore2.getState().getKey('gemini')).toBeNull();
+    expect(useSecretsStore2.getState().getKey('openrouter')).toBeNull();
   });
 });

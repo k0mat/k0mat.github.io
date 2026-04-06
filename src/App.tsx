@@ -96,12 +96,10 @@ export default function App() {
           <div className="flex items-center gap-2 flex-wrap">
             <ProviderSelect
               options={providers.map(p => ({ id: p.id, name: p.name }))}
-              value={activeTab?.providerId ?? 'gemini'}
+              value={activeTab?.providerId ?? 'openrouter'}
               onChange={(pid) => {
                 if (!activeTab) return;
-                const nextModel = pid === 'openrouter'
-                  ? (getDefaultFor('openrouter') ?? 'openrouter/auto')
-                  : (getDefaultFor('gemini') ?? 'gemini-1.5-flash');
+                const nextModel = getDefaultFor('openrouter') ?? 'openrouter/auto';
                 setSession(activeTab.id, pid as Provider['id'], nextModel);
               }}
               className="w-48"

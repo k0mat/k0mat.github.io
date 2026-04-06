@@ -32,7 +32,7 @@ export default function WelcomeScreen({ onOpenSettings }: WelcomeScreenProps) {
                 Add Your API Keys
               </h3>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Connect to OpenRouter or Gemini to start chatting with AI models.
+              Connect to OpenRouter to start chatting with AI models.
               </p>
             </div>
           </div>

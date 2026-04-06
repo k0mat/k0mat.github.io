@@ -20,14 +20,16 @@ function makeReaderFromString(s: string) {
 }
 
 describe('App scaffold', () => {
-  it('renders header and can send a message with Gemini', async () => {
-    // Seed a fake Gemini key in secrets store
+  it('renders header and can send a message with OpenRouter', async () => {
+    // Seed a fake OpenRouter key in secrets store
     const { useSecretsStore } = await import('./store/secretsStore');
-    useSecretsStore.setState((s) => ({ ...s, secrets: { ...(s.secrets || {}), gemini: 'test-key' } }));
+    useSecretsStore.setState((s) => ({ ...s, secrets: { ...(s.secrets || {}), openrouter: 'sk-or-v1-test' } }));
 
-    // Mock Gemini fetch response
-    const sseSample = `data: {"candidates":[{"content":{"parts":[{"text":"Hi "}]}}]}` + "\n" +
-    `data: {"candidates":[{"content":{"parts":[{"text":"there"}]}}]}` + "\n";
+    // Mock OpenRouter SSE response
+    const sseSample =
+      `data: {"choices":[{"delta":{"content":"Hi "}}]}\n` +
+      `data: {"choices":[{"delta":{"content":"there"}}]}\n` +
+      `data: [DONE]\n`;
 
     (globalThis as any).fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -45,4 +47,3 @@ describe('App scaffold', () => {
     expect(reply).toBeInTheDocument();
   });
 });
-
